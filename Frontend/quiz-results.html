@@ -1,0 +1,104 @@
+<h2 class="heading">Quiz Results</h2>
+<div id="results"></div>
+<style>
+  body {
+  background: #dfe9f3;   /* light bluish */
+  font-family: Arial, sans-serif;
+}
+
+.heading {
+  text-align: center;
+  color: #2c3e90;   /* same blue tone */
+  font-size: 32px;
+  margin-top: 30px;
+}
+</style>
+<script>
+async function loadResults() {
+  try {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Login first!");
+      return;
+    }
+
+    const res = await fetch("http://localhost:8000/quiz/teacher/results", {
+      headers: {
+        "Authorization": "Bearer " + token
+      }
+    });
+
+    console.log("STATUS:", res.status);
+
+    if (!res.ok) {
+      throw new Error("API failed");
+    }
+
+    const data = await res.json();
+    console.log("DATA:", data);
+
+   let html = "";
+
+data.forEach(q => {
+  html += `
+  <div style="
+    width: 60%;
+    margin: 20px auto;
+    border-radius: 15px;
+    padding: 20px;
+    background: #ffffff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  ">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+  <h3 style="color:#2c3e90; margin:0;">${q.title}</h3>
+
+  <button onclick="deleteQuiz('${q.quiz_id}')"
+    style="
+      background:red;
+      color:white;
+      border:none;
+      padding:6px 12px;
+      border-radius:5px;
+      cursor:pointer;
+    ">
+    Delete Quiz
+  </button>
+</div>
+
+    <hr>
+  `;
+
+  if (q.submissions.length === 0) {
+    html += "<p>No submissions yet</p>";
+  }
+
+  q.submissions.forEach(s => {
+    html += `
+      <div style="
+        padding:10px;
+        margin:8px 0;
+        border:1px solid #ccc;
+        border-radius:5px;
+        background:white;
+      ">
+        <p><b>Student:</b> ${s.student}</p>
+        <p><b>Score:</b> ${s.score}</p>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+});
+
+document.getElementById("results").innerHTML = html;
+
+  } catch (err) {
+    console.error("FULL ERROR:", err);
+    document.getElementById("results").innerHTML = "<p>Error loading results</p>";
+  }
+}
+
+loadResults();
+</script>
+

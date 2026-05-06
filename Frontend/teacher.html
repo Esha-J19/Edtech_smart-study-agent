@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Study Agent</title>
+
+<!-- PDF.js & Tesseract.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: "Google Sans","Segoe UI",Arial,sans-serif;
+  background:#0f172a;
+  color:#e2e8f0;
+  display:flex;
+  height:100vh;
+}
+.sidebar{
+  width:260px;
+  background:linear-gradient(180deg,#020617,#0f172a);
+  padding:20px;
+  border-right:1px solid #334155;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  box-shadow: inset -1px 0 0 rgba(255,255,255,0.05), 8px 0 30px rgba(0,0,0,0.6);
+}
+.sidebar-top h2{
+  font-size:1.4rem;
+  font-weight:700;
+  letter-spacing:1px;
+  margin-bottom:28px;
+  background:linear-gradient(90deg,#00f2fe,#4facfe);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.sidebar button{
+    width: 100%;
+  padding:12px 15px;
+  margin-bottom:10px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:10px;
+  color:#e2e8f0;
+  font-size:0.95rem;
+  text-align:left;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  transition: all 0.35s ease;
+  backdrop-filter:blur(8px);
+}
+.sidebar button:hover{
+  background:linear-gradient(135deg,#4facfe,#00f2fe);
+  color:#020617;
+  transform:translateX(6px) scale(1.02);
+  box-shadow:0 10px 30px rgba(79,172,254,0.45);
+}
+hr{border:none;height:1px;background:linear-gradient(90deg,transparent,#38bdf8,transparent);margin:20px 0;}
+#historyList h4{font-size:0.75rem;color:#7dd3fc;margin-bottom:10px;letter-spacing:2px;}
+#historyList div{
+  background:rgba(255,255,255,0.03);
+  border-radius:10px;
+  padding:10px;
+  margin-bottom:8px;
+  font-size:0.82rem;
+  transition: all 0.3s ease;
+  cursor:pointer;
+}
+#historyList div:hover{
+  background:rgba(56,189,248,0.15);
+  box-shadow:inset 0 0 0 1px rgba(56,189,248,0.4);
+}
+.profile-box{
+  background:rgba(255,255,255,0.03);
+  border-radius:14px;
+  padding:14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow:0 -10px 30px rgba(0,0,0,0.5);
+  transition:0.3s;
+}
+.profile-box:hover{
+  background:linear-gradient(135deg,#0ea5e9,#38bdf8);
+  color:#020617;
+  transform:translateY(-2px);
+  cursor:pointer;
+}
+.profile-avatar{
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,#4facfe,#00f2fe);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:bold;color:#0f172a;
+  box-shadow:0 0 18px rgba(79,172,254,0.9);
+}
+.profile-info h4{margin:0;font-size:0.95rem;}
+.profile-info span{font-size:0.75rem;color:#94a3b8;}
+
+.response{
+  background:#1e293b;
+  padding:15px;
+  border-radius:12px;
+  max-width:70%;
+  margin-bottom:80px;
+  display:none;
+  white-space:pre-wrap;
+}
+
+.plus-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:#334155;color:white;border:none;
+  cursor:pointer;
+}
+textarea{
+  flex:1;border:none;outline:none;resize:none;
+  background:transparent;color:#e2e8f0;padding:10px;
+}
+.enter-btn{
+  width:36px;height:36px;border-radius:50%;
+  border:none;
+  background:linear-gradient(135deg,#4facfe,#00f2fe);
+  color:#0f172a;font-weight:bold;
+  cursor:pointer;
+}
+#imgPreview{
+  max-width:250px;
+  border-radius:10px;
+  margin-bottom:10px;
+  display:none;
+}
+
+.chat-area {
+  flex:1;
+  padding:40px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+}
+
+.chat-area h2 {
+  margin-bottom:10px;
+}
+
+.chat-area input {
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:8px;
+  border:none;
+}
+
+.chat-area button {
+  width:200px;
+  margin-bottom:20px;
+}
+
+#classList div {
+  background-color: #134a92b9;   /* box color */
+  color: #ffffff;              /* text color */
+  border: 1px solid #334155;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+#classList div:hover {
+  background-color: #334155;
+  transition: 0.3s;
+}
+
+.create-class-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.create-class-row input {
+  flex: 1;
+  margin: 0;
+}
+
+.create-class-row button {
+  width: auto;
+  margin: 0;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-top">
+    <h2>Menu</h2>
+    
+    <hr>
+    
+    <button onclick="location.href='ass.html'"> Assignment Generator</button>
+    <button onclick="location.href='q.html'"> Create Quiz</button>
+    <button onclick="openQuizResults()">Test Scores</button>
+    <button onclick="location.href='announce.html'"> Announcements</button>
+    <button onclick="location.href='study.html'">  Study Material</button>
+    
+    <div id="historyList"></div>
+  </div>
+
+  <div class="profile-box">
+    <div class="profile-avatar">T</div>
+    <div class="profile-info">
+      <h4 id="teacherName">Teacher</h4>
+      <span id="teacherRole">Teacher Account</span>
+    </div>
+    <button onclick="logout()" style="margin-left:auto; width: 50px;">⏻</button>
+  </div>
+</div>
+
+<div id="pasteBox" contenteditable="true" style="display:none;"></div>
+
+<div class="chat-area">
+  
+  <h3>Create Classroom</h3>
+
+  <div class="create-class-row">
+    <input type="text" id="className" placeholder="Enter class name">
+    <button onclick="createClassroom()">Create Class</button>
+  </div>
+
+  <h3>My Classes</h3>
+  <div id="classList"></div>
+
+</div>
+
+<input type="file" id="docInput" hidden accept=".pdf,.txt">
+
+<script>
+let chats = JSON.parse(localStorage.getItem("chatHistory")) || [];
+renderHistory();
+
+function renderHistory(){
+  historyList.innerHTML="";
+
+  chats.slice().reverse().forEach((c, index)=>{
+    const d = document.createElement("div");
+    d.innerText = c.preview;
+
+    // click → open chat
+    d.onclick = () => loadChat(c.full);
+
+    // right click → delete chat
+    d.oncontextmenu = (e) => {
+      e.preventDefault();
+      if(confirm("Delete this chat?")){
+        const realIndex = chats.length - 1 - index;
+        chats.splice(realIndex, 1);
+        localStorage.setItem("chatHistory", JSON.stringify(chats));
+        renderHistory();
+        responseBox.style.display = "none";
+      }
+    };
+
+    historyList.appendChild(d);
+  });
+}
+
+
+function newChat(){
+  responseBox.style.display="none";
+  responseBox.innerText="";
+  prompt.value="";
+  imgPreview.style.display="none";
+  imgPreview.src="";
+}
+
+function searchChat(){
+  const key = prompt("Search chat:");
+  if(!key) return;
+
+  const results = chats.filter(c =>
+    c.preview.toLowerCase().includes(key.toLowerCase()) ||
+    c.full.toLowerCase().includes(key.toLowerCase())
+  );
+
+  if(results.length === 0){
+    alert("No chat found");
+    return;
+  }
+
+  alert(results.map(r => r.preview).join("\n"));
+}
+
+
+function loadChat(text){
+  responseBox.style.display="block";
+  responseBox.innerText = text;
+}
+
+
+function uploadDoc(){ docInput.click(); }
+
+docInput.onchange = async () => {
+  const file = docInput.files[0];
+  if(!file) return;
+  let textContent = "";
+
+  if(file.type === "application/pdf"){
+    const pdf = await pdfjsLib.getDocument(URL.createObjectURL(file)).promise;
+    for(let i=1;i<=pdf.numPages;i++){
+      const page = await pdf.getPage(i);
+      const txt = await page.getTextContent();
+      textContent += txt.items.map(item=>item.str).join(" ") + "\n";
+    }
+  } else if(file.type === "text/plain"){
+    textContent = await file.text();
+  }
+
+ const summary = summarizeText(textContent);
+
+responseBox.style.display = "block";
+responseBox.innerText = " Document Summarized";
+
+chats.push({
+  preview: summary.split(" ").slice(0, 10).join(" ") + "...",
+  full: summary
+});
+
+localStorage.setItem("chatHistory", JSON.stringify(chats));
+renderHistory();
+
+}
+
+// Basic frequency-based summarization
+function summarizeText(text){
+  const sentences = text.match(/[^\.!\?]+[\.!\?]+/g) || [];
+  if(sentences.length <= 5) return text;
+  
+  const freqMap = {};
+  text.toLowerCase().split(/\W+/).forEach(word=>{
+    if(word.length>3) freqMap[word] = (freqMap[word]||0)+1;
+  });
+
+  const scored = sentences.map(s=>{
+    let score = 0;
+    Object.keys(freqMap).forEach(word=>{
+      if(s.toLowerCase().includes(word)) score += freqMap[word];
+    });
+    return {s,score};
+  });
+
+  scored.sort((a,b)=>b.score - a.score);
+  return scored.slice(0, Math.min(5, scored.length)).map(x=>x.s.trim()).join(" ");
+}
+
+// Image paste from clipboard
+document.addEventListener("paste", e=>{
+  for(let item of e.clipboardData.items){
+    if(item.type.indexOf("image")!==-1){
+      const file = item.getAsFile();
+      const reader = new FileReader();
+      reader.onload = ()=> {
+        imgPreview.src = reader.result;
+        imgPreview.style.display="block";
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+});
+
+
+
+
+function logout(){
+  localStorage.removeItem("token");
+  window.location.replace("j.html");
+}
+
+function generateTitle(text){
+  text = text.replace(/\s+/g, " ").trim();
+  let words = text.split(" ").slice(0, 5).join(" ");
+  if(words.length > 30){
+    return words.substring(0, 30) + "...";
+  }
+  return words + "...";
+}
+
+
+function loadChat(fullText){
+  responseBox.style.display = "block";
+  responseBox.innerText = fullText;
+}
+async function summarizeImageFromPreview(){
+alert("OCR function called");
+
+  console.log("OCR started");
+
+  responseBox.style.display = "block";
+  responseBox.innerText = " Image summarized";
+
+  try{
+    const result = await Tesseract.recognize(
+      imgPreview.src,
+      'eng'
+    );
+
+    console.log("OCR result", result);
+
+    const extractedText = result.data.text.trim();
+
+    if(extractedText.length < 5){
+      responseBox.innerText =
+        " Image summarized\n\n(No readable text found)";
+      return;
+    }
+
+    const summary = summarizeText(extractedText);
+
+    const finalText =
+      "Image summarized\n\n" + summary;
+
+    responseBox.innerText = finalText;
+
+    chats.push({
+      preview: "Image Summarization",
+      full: finalText
+    });
+
+    localStorage.setItem("chatHistory", JSON.stringify(chats));
+    renderHistory();
+
+  }catch(err){
+    console.error(err);
+    responseBox.innerText = " Image OCR failed";
+  }
+}
+
+const sendBtn = document.getElementById("sendBtn");
+const promptEl = document.getElementById("userInput");
+const responseBox = document.getElementById("responseBox");
+
+// -------- FIX: BUTTON LISTENER --------
+if (sendBtn) {
+  sendBtn.addEventListener("click", showResponse);
+}
+
+// -------- MAIN FUNCTION --------
+function showResponse() {
+
+  if (!promptEl || !responseBox) return;
+
+  const text = promptEl.value.trim();
+
+  if (!text) {
+    alert("Enter something");
+    return;
+  }
+
+  responseBox.style.display = "block";
+  responseBox.innerText = "📄 Summary: " + text;
+
+  promptEl.value = "";
+}
+
+// -------- ENTER KEY --------
+if (promptEl) {
+  promptEl.addEventListener("keypress", function(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      showResponse();
+    }
+  });
+}
+
+// -------- CLASSROOM CREATE --------
+async function createClassroom() {
+
+  const input = document.getElementById("className");
+  const name = input.value;
+
+  if (!name.trim()) {
+    alert("Enter class name");
+    return;
+  }
+
+  try {
+  const res = await fetch("http://127.0.0.1:8000/classroom/create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    },
+    body: JSON.stringify({ name })
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    alert("Error: " + errorText);
+    return;
+  }
+
+  const data = await res.json();
+
+alert("Class Created Code: " + data.code);
+
+loadClasses();
+
+} catch (err) {
+  console.error("REAL ERROR:", err);
+}
+}
+
+// -------- LOAD CLASSES --------
+async function loadClasses() {
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/classroom/my", {
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      }
+    });
+
+    const data = await res.json();
+
+    const container = document.getElementById("classList");
+    container.innerHTML = "";
+
+    data.forEach(c => {
+
+  const div = document.createElement("div");
+
+  div.style.display = "flex";
+  div.style.justifyContent = "space-between";
+  div.style.alignItems = "center";
+  div.style.border = "1px solid #ccc";
+  div.style.padding = "10px";
+  div.style.margin = "6px 0";
+
+  div.innerHTML = `
+    <span onclick="openClass('${c.code}')"
+          style="cursor:pointer;">
+      ${c.name} (Code: ${c.code})
+    </span>
+
+    <button 
+  onclick="event.stopPropagation(); deleteClass('${c.code}')"
+  style="
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 6px;
+    border: none;
+    background: #ff4d4d;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  ">
+  🗑
+</button>
+
+  `;
+
+  container.appendChild(div);
+});
+
+ } catch (err) {
+    console.error(err);
+  }
+}
+
+// -------- PAGE LOAD --------
+window.onload = () => {
+  loadClasses();
+  loadUser();   
+};
+
+async function viewSubmissions(id) {
+  const res = await fetch(`http://127.0.0.1:8000/teacher/submissions/${id}`, {
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  const data = await res.json();
+
+  const container = document.getElementById(`sub-${id}`);
+  container.innerHTML = "";
+
+  data.forEach(s => {
+    const div = document.createElement("div");
+
+    div.innerHTML = `
+      <p><b>Student:</b> ${s.student_email}</p>
+      <p><b>Time:</b> ${new Date(s.submitted_at).toLocaleString()}</p>
+      <a href="http://127.0.0.1:8000/teacher/submission-file/${s._id}">
+        Download
+      </a>
+      <hr>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+function openClass(code) {
+  console.log("Opening class:", code); // debug
+  localStorage.setItem("selectedClass", code);
+  window.location.href = "class-details.html";
+}
+
+async function deleteClass(code) {
+
+  console.log("Deleting class:", code);  
+
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/teacher/classroom/${code}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      }
+    });
+
+    const data = await res.json();
+    console.log("Response:", data);
+
+    if (res.ok) {
+      alert("Deleted ");
+      location.reload();
+    } else {
+      alert(data.detail);
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Server crash");
+  }
+}
+
+async function postAnnouncement() {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch("http://localhost:8000/announcements/create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({
+      title: document.getElementById("title").value,
+      message: document.getElementById("message").value
+    })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+}
+
+async function loadUser() {
+  try {
+    const res = await fetch("http://127.0.0.1:8000/auth/me", {
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      }
+    });
+
+    const data = await res.json();
+
+    
+    document.getElementById("teacherName").innerText = data.name;
+
+    // optional role
+    document.getElementById("teacherRole").innerText =
+      data.role.charAt(0).toUpperCase() + data.role.slice(1) + " Account";
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+
+function openQuizResults() {
+  window.location.href = "quiz-results.html";
+}
+
+async function loadResults() {
+  try {
+    const res = await fetch("http://localhost:8000/quiz/teacher/results", {
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      }
+    });
+
+    const data = await res.json();
+    console.log(data);
+
+    let html = "<h2>Quiz Results</h2>";
+
+    data.forEach(q => {
+      html += `<h3>${q.title}</h3>`;
+
+      if (q.submissions.length === 0) {
+        html += "<p>No submissions yet</p>";
+      }
+
+      q.submissions.forEach(s => {
+        html += `
+          <p>Student: ${s.student}</p>
+          <p>Score: ${s.score}</p>
+          <hr>
+        `;
+      });
+    });
+
+    document.getElementById("results").innerHTML = html;
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+
+</script>
+
+</body>
+</html>  

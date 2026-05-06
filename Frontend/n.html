@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EdTech Smart Study Agent</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      color: white;
+      height: 100vh;
+      position: relative;
+      cursor: default;
+
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.25), rgba(0,0,0,0.1));
+      backdrop-filter: blur(3px);
+      z-index: 0;
+    }
+
+    nav, .hero, #features-section, .modal {
+      position: relative;
+      z-index: 2;
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 60px;
+      background: rgba(0,0,0,0.3);
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 30px;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      color: white;
+      font-size: 1.2rem;
+    }
+
+    .sign-btn {
+      padding: 8px 20px;
+      border: 2px solid white;
+      border-radius: 20px;
+      background: transparent;
+      color: white;
+      cursor: pointer;
+    }
+
+    .hero {
+      height: calc(100vh - 100px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .hero h1 {
+       margin-top: 200; 
+       margin-bottom: 8px;
+       font-size: 3rem;
+       font-weight: 800;
+       text-shadow: 0 8px 30px rgba(0,0,0,0.45);
+       }
+    .hero p{
+        max-width: 600px;
+      margin-bottom: 15px;
+      margin-top: 0;
+    }
+
+    .cta-btn {
+  padding: 14px 34px;
+  background: linear-gradient(135deg, #e879f9, #a855f7);
+  border: none;
+  border-radius: 40px;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(168,85,247,0.45);
+  transition: 0.3s ease;
+}
+
+.cta-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(168,85,247,0.6);
+}
+     .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      color: black;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      width: 300px;
+      animation: pop 0.3s ease;
+    }
+
+    @keyframes pop {
+      from { transform: scale(0.8); }
+      to { transform: scale(1); }
+    }
+
+    .modal-content h2 {
+      margin-bottom: 20px;
+    }
+
+    .role-btn {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      background: #BAC;
+      color: white;
+    }
+
+    .role-btn:hover {
+      background: #BAC;
+    }
+
+    .close {
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: gray;
+    }
+
+    /* ---------- FEATURES SECTION ---------- */
+
+    #features-section {
+       background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(14px);
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #f5e9ff 40%,
+    #efe0ff 70%,
+    #ffffff 100%
+  );
+  padding-bottom: 80px;
+  margin-top: 0px;
+  padding-top: 25px;
+  min-height: 80vh;
+}
+
+#features-section h1 {
+  text-align: center;
+  font-size: 2.1rem;
+  margin-bottom: 40px; 
+  margin-top: 5px;
+  color: black;
+}
+ .features-desc {
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: #555;
+  margin: -35px auto 60px;
+  letter-spacing: 0.3px;
+}
+
+    .half {
+      display: flex;
+      overflow: hidden;
+      margin-top: 60px;
+    }
+
+    .features-line {
+      display: flex;
+      
+    }
+
+    .features-line.reverse {
+      animation-direction: none;
+      /* justify-content: center;
+  flex-wrap: wrap; */
+    }
+
+    .feature {
+      background: #BAC;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 24px;
+      padding: 20px;
+      margin: 20px;
+      width: 380px;
+      transition: 0.4s ease;
+    }
+
+    /*  IMAGE FIXED */
+    .feature-img {
+      width: 100%;
+      height: 180px;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .feature-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .feature h2 {
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      color: black;
+    }
+
+    .feature p {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color:black;
+    }
+
+    .feature:hover {
+      transform: translateY(-12px) scale(1.03);
+      box-shadow: 0 25px 55px rgba(255,108,240,0.45);
+    }
+
+    @keyframes scrollLine {
+      from { transform: translateX(100%); }
+      to { transform: translateX(-100%); }
+    }
+ 
+  .bg-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+  background: white;
+}
+.video-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  width:100%;
+  height: 100vh;
+  overflow: hidden;
+}
+html {
+  scroll-behavior: smooth;
+}
+
+.contact-area {
+  background: #ffffff;
+  padding: 80px 8%;
+  color: #1f2937;
+}
+
+.contact-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 60px;
+}
+
+.contact-col h4 {
+  font-size: 1.1rem;
+  margin-bottom: 18px;
+}
+
+.contact-col p {
+  color: #4b5563;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+.contact-col p:hover {
+  color: #4f46e5;
+}
+
+.made {
+  text-align: center;
+  margin-top: 60px;
+  color: #6b7280;
+}
+
+
+  </style>
+</head>
+
+<body>
+   
+
+
+<div class="video-wrapper">
+  <video class="bg-video" autoplay muted loop playsinline>
+    <source src="/Edtech_Smart_Study_Agent (2).mp4" type="video/mp4">
+  </video>
+  <div class="overlay"></div>
+</div>
+
+
+
+<nav>
+  <div class="logo"><h2>Ed-Tech : Smart Study Agent</h2></div>
+  <ul>
+    <li><a href="#">Home</a></li>
+    <li><a href="#features-section">Features</a></li>
+    <li><a href="#">About</a></li>
+    <li><a href="#contact-section">Contact</a></li>
+  </ul>
+  <button class="sign-btn"onclick="window.location.href='j.html'">Sign In</button>
+</nav>
+
+<div class="hero">
+  <h1>Welcome to Ed-Tech : Smart Study Agent</h1>
+  <p>Your AI-powered Ed-Tech companion for personalized learning and smart guidance.</p>
+  <button class="cta-btn"onclick="openModal()">Get Started</button>
+</div>
+<!-- Modal -->
+  <div class="modal" id="roleModal">
+    <div class="modal-content">
+      <h2>You are a?</h2>
+      <button class="role-btn" onclick="selectRole('student')">Student </button>
+      <button class="role-btn" onclick="selectRole('teacher')">Teacher ></button>
+      <div class="close" onclick="closeModal()">Cancel</div>
+    </div>
+  </div>
+
+<section id="features-section">
+  <h1>Features of Smart Study Agent</h1>
+  <p class="features-desc">
+  Your personal AI study partner for faster learning and better results.
+</p>
+
+
+  <div class="half">
+    <div class="features-line">
+
+      <div class="feature">
+        <div class="feature-img">
+          <img src="https://content.cloudthat.com/resources/wp-content/uploads/2024/01/Transforming-Documents-into-Actionable-Data-with-Azure-AI-Document-Intelligence.webp">
+        </div>
+        <h2>Upload Documents</h2>
+        <p>Upload and store syllabus, eBooks, notes securely.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-img">
+          <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f">
+        </div>
+        <h2>Document Q&A</h2>
+        <p>Ask questions and get instant answers.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-img">
+          <img src="https://images.unsplash.com/photo-1552664730-d307ca884978">
+        </div>
+        <h2>Summarization</h2>
+        <p>Generate concise chapter summaries.</p>
+      </div>
+
+    </div>
+  </div>
+
+
+    <div class="features-line reverse">
+
+      <div class="feature">
+        <div class="feature-img">
+          <img src="https://www.visily.ai/wp-content/uploads/2024/03/Text-to-Diagram-Feature-min.jpg">
+        </div>
+        <h2>Visualization</h2>
+        <p>Convert concepts into diagrams.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-img">
+          <img src="https://images.unsplash.com/photo-1606326608606-aa0b62935f2b">
+        </div>
+        <h2>Quiz Generator</h2>
+        <p>Auto-generate quizzes.</p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-img">
+          <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b">
+        </div>
+        <h2>Gamification</h2>
+        <p>Track progress & earn rewards.</p>
+      </div>
+
+    </div>
+  </div>
+  <section id="contact-section" class="contact-area">
+  <div class="contact-container">
+
+    <div class="contact-col">
+      <h4>Main</h4>
+      <p>Home</p>
+      <p>Contact</p>
+      <p>Work With Us</p>
+      <p>My Gear</p>
+    </div>
+
+    <div class="contact-col">
+      <h4>Learn</h4>
+      <p>Courses</p>
+      <p>Tutorials</p>
+      <p>Notes</p>
+    </div>
+
+    <div class="contact-col">
+      <h4>Legal</h4>
+      <p>Terms</p>
+      <p>Privacy</p>
+      <p>Refund</p>
+    </div>
+
+    <div class="contact-col">
+      <h4>Social</h4>
+      <p>GitHub</p>
+      <p>Twitter (X)</p>
+      <p>YouTube</p>
+      <p>Facebook</p>
+    </div>
+
+  </div>
+
+  <p class="made">Made with ❤️ and ☕ in India</p>
+</section>
+
+  <script>function openModal() {
+      document.getElementById("roleModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("roleModal").style.display = "none";
+    }
+
+    function selectRole(role) {
+      if (role === "student") {
+        window.location.href = "j.html"; // student page
+      } else {
+        window.location.href = "j.html"; // teacher page
+      }
+    }
+ 
+  
+
+
+  </script>
+  
+</section>
+
+</body>
+</html>

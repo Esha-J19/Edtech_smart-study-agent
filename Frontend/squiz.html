@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document Quiz Generator</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:"Google Sans","Segoe UI",Arial,sans-serif;
+}
+
+body{
+  height:100vh;
+  background:
+    radial-gradient(circle at top left,#0ea5e9,transparent 40%),
+    radial-gradient(circle at bottom right,#38bdf8,transparent 45%),
+    linear-gradient(135deg,#020617,#0f172a);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#e2e8f0;
+}
+.pdf-item {
+  padding: 10px;
+  margin: 6px 0;
+  border-radius: 8px;
+  background: #1e293b;
+  cursor: pointer;
+}
+
+.pdf-item:hover {
+  background: #334155;
+}
+
+.pdf-item.selected {
+  background: #4facfe;
+  color: black;
+}
+/* ---------- Card ---------- */
+.container{
+  width:900px;
+  background:#020617;
+  border:1px solid #334155;
+  border-radius:22px;
+  padding:30px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.7);
+}
+
+/* ---------- Title ---------- */
+h1{
+  text-align:center;
+  font-size:1.6rem;
+  margin-bottom:20px;
+  background:linear-gradient(90deg,#00f2fe,#4facfe);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+/* ---------- Upload Box ---------- */
+.upload-box{
+  border:2px dashed #334155;
+  border-radius:16px;
+  padding:30px;
+  text-align:center;
+  cursor:pointer;
+  transition:0.3s;
+}
+.upload-box:hover{
+  border-color:#38bdf8;
+  background:rgba(56,189,248,0.05);
+}
+
+/* ---------- Generate Button ---------- */
+.generate-btn{
+  margin-top:25px;
+  width:100%;
+  height:58px;
+  border:none;
+  border-radius:30px;
+  font-size:1.1rem;
+  font-weight:700;
+  cursor:pointer;
+  background:linear-gradient(90deg,#4facfe,#00f2fe);
+  color:#020617;
+  transition:0.3s;
+}
+.generate-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 15px 40px rgba(79,172,254,0.6);
+}
+
+/* ---------- Quiz ---------- */
+.quiz{
+  margin-top:35px;
+  max-height:400px;   
+  overflow-y:auto;   
+  padding-right:10px;
+  line-height:1.5;
+}
+.question{
+  background:#1e293b;
+  padding:18px;
+  border-radius:14px;
+  margin-bottom:16px;
+}
+.option{
+  margin:6px 0;
+}
+.option input{
+  margin-right:8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1> Document → Quiz Generator</h1>
+
+  <div class="upload-box" onclick="docInput.click()">
+  📄 Upload new PDF for quiz
+</div>
+
+<div id="existingDocs" style="
+margin-top:15px;
+border-radius:10px;
+background:#0f172a;
+border:1px solid #334155;
+padding:10px;
+">
+</div>
+
+  <button class="generate-btn" onclick="generateQuiz()">
+    Generate
+  </button>
+
+  <div class="quiz" id="quizBox"></div>
+</div>
+
+<input type="file" id="docInput" hidden accept=".pdf,.txt">
+
+<script>
+const BASE_URL = "http://127.0.0.1:8000";
+
+/* ---------- Generate Quiz ---------- */
+async function generateQuiz(){
+
+  const quizBox = document.getElementById("quizBox");
+  const selectedDocs = Array.from( document.querySelectorAll(".pdf-item.selected")
+  ).map(el => el.dataset.id);
+  if(selectedDocs.length === 0){
+  alert("Please select at least one document");
+  return;
+}
+  quizBox.innerHTML = "Generating quiz...";
+  const num_mcq = prompt("How many MCQs?");
+  const num_subjective = prompt("How many subjective questions?");
+  const difficulty = prompt("Difficulty? (easy / medium / hard)");
+  try{
+    const res = await fetch(`${BASE_URL}/documents/generate-quiz`,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer " + localStorage.getItem("token")
+      },
+      body: JSON.stringify({
+        document_ids: selectedDocs,
+        num_mcq: parseInt(num_mcq) || 5,
+        num_subjective: parseInt(num_subjective) || 2,
+        difficulty: difficulty || "medium"
+      })
+    });
+    const data = await res.json();
+
+let formatted = data.response;
+
+//  remove markdown junk
+formatted = formatted.replace(/##/g, "");
+formatted = formatted.replace(/\*\*/g, "");
+formatted = formatted.replace(/---/g, "");
+
+//  remove confidence + sources (junk at bottom)
+formatted = formatted.replace(/# Confidence[\s\S]*/g, "");
+
+//  fix Answer & Explanation line breaks
+formatted = formatted.replace(/Answer:\s*\n\s*/g, "Answer: ");
+formatted = formatted.replace(/Explanation:\s*\n\s*/g, "Explanation: ");
+
+// remove extra blank lines
+formatted = formatted.replace(/\n\s*\n/g, "\n");
+
+//  QUESTIONS (clean highlight)
+formatted = formatted.replace(/Q\d+\./g, match =>
+  `<br><br><strong style="color:#38bdf8;font-size:1.1rem;">${match}</strong>`
+);
+
+//  OPTIONS (A) B) C) D))
+formatted = formatted.replace(/([A-D]\))/g, "<br>$1");
+
+// ANSWER styling
+formatted = formatted.replace(/Answer:/g,
+  "<br><b style='color:#22c55e;'>Answer:</b>"
+);
+
+//  EXPLANATION styling
+formatted = formatted.replace(/Explanation:/g,
+  "<br><i style='color:#facc15;'>Explanation:</i>"
+);
+
+//  FINAL line breaks (ONLY ONCE)
+formatted = formatted.replace(/\n/g, "<br>");
+//  remove duplicate questions visually
+let seenQ = new Set();
+formatted = formatted.split("<br>").filter(q => {
+  if(seenQ.has(q)) return false;
+  seenQ.add(q);
+  return true;
+}).join("<br>");
+quizBox.innerHTML = formatted;
+
+  }catch(err){
+
+    quizBox.innerHTML = " Server error";
+
+  }
+
+}
+
+function shuffle(arr){
+  return arr.sort(()=>Math.random()-0.5);
+}
+
+async function loadDocuments(){
+
+  const res = await fetch(`${BASE_URL}/documents`,{
+    headers:{
+      "Authorization":"Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  const data = await res.json();
+  const docs = data.documents;
+
+  const container = document.getElementById("existingDocs");
+
+  container.innerHTML = "";   // clear
+
+  if(!docs || docs.length === 0){
+    container.innerHTML = "No documents found ❌";
+    return;
+  }
+
+  const unique = new Set();
+
+  docs.forEach(doc => {
+
+    if(unique.has(doc.filename)) return;
+    unique.add(doc.filename);
+
+    const div = document.createElement("div");
+
+    div.className = "pdf-item";
+    div.dataset.id = doc.id;
+    div.innerText = doc.filename;
+
+    div.onclick = () => {
+      div.classList.toggle("selected");
+    };
+
+    container.appendChild(div);
+
+  });
+
+}
+
+
+loadDocuments();
+
+docInput.onchange = async () => {
+
+  const file = docInput.files[0];
+  if(!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("class_code", "demo");
+  formData.append("title", file.name);
+  formData.append("material_type", "pdf");
+  formData.append("class_name", "demo");
+
+  await fetch(`${BASE_URL}/documents/upload`,{
+    method:"POST",
+    headers:{
+      "Authorization":"Bearer " + localStorage.getItem("token")
+    },
+    body:formData
+  });
+
+  alert("PDF uploaded successfully");
+
+
+  await loadDocuments();
+
+};
+
+</script>
+
+</body>
+</html>
+

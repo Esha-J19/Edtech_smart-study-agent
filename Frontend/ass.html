@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classroom-Style Assignment Generator</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f3f4f6; margin:0; padding:0; }
+  .container { max-width: 900px; margin: 40px auto; background: #fff; padding: 30px 40px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+  h1 { text-align: center; color: #1e3a8a; }
+  label { display: block; margin-top: 15px; font-weight: bold; }
+  input[type="text"], textarea, input[type="date"], input[type="number"] { width: 100%; padding: 10px 12px; margin-top: 6px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; }
+  textarea { resize: vertical; }
+  .questions { margin-top: 20px; }
+  .question { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+  .question input[type="text"], .question input[type="number"] { flex: 1; }
+  button { margin-top: 20px; padding: 12px 20px; border: none; border-radius: 8px; background: #1e3a8a; color: #fff; font-size: 1rem; cursor: pointer; transition: all 0.3s; }
+  button:hover { background: #2563eb; }
+  #preview { margin-top: 30px; padding: 20px; background: #e0f2fe; border-radius: 12px; white-space: pre-wrap; font-family: 'Courier New', Courier, monospace; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .question label { font-size: 0.9rem; }
+</style>
+</head>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<body>
+
+<div class="container">
+  <h1> Assignment Generator</h1>
+
+  <label>Course Name:</label>
+  <input type="text" id="courseName" placeholder="Enter course name">
+
+  <label>Teacher Name:</label>
+  <input type="text" id="teacherName" placeholder="Enter teacher name">
+
+  <label>Assignment Number:</label>
+  <input type="text" id="assignmentNumber" placeholder="e.g., Assignment 1">
+
+  <label>Date:</label>
+  <input type="date" id="date">
+
+  <label>Due Date:</label>
+  <input type="date" id="dueDate">
+
+  <label>Assignment Title:</label>
+  <input type="text" id="title" placeholder="Enter assignment title">
+
+  <label>Select Classroom:</label>
+  <select id="classCode"></select>
+
+  <label>Instructions:</label>
+  <textarea id="description" rows="4" placeholder="Enter instructions"></textarea>
+
+
+  <div class="questions">
+    <h3>Questions:</h3>
+    <div id="questionList">
+      <div class="question">
+        <input type="text" class="questionText" placeholder="Enter question">
+<input type="number" class="marksInput" placeholder="Marks" min="0">
+        <label><input type="checkbox"> Optional</label>
+        <button type="button" onclick="removeQuestion(this)">Remove</button>
+      </div>
+    </div>
+    <button type="button" onclick="addQuestion()"> Add Question</button>
+  </div>
+
+  <div class="actions">
+    <button onclick="generateAssignment()">Generate Assignment</button>
+    
+  <select id="downloadType" style="padding:10px;border-radius:8px;">
+    <option value="txt">Download as Text (.txt)</option>
+    <option value="pdf">Download as PDF</option>
+  </select>
+  <button onclick="downloadAssignment()">Download</button>
+  </div>
+
+  <div id="preview"></div>
+
+
+<button id="sendBtn" onclick="sendAssignment()" disabled>
+  Send Assignment
+</button>
+</div>
+
+<script>
+function addQuestion() {
+  const questionList = document.getElementById('questionList');
+  const div = document.createElement('div');
+  div.className = 'question';
+  div.innerHTML = `
+  <input type="text" class="questionText" placeholder="Enter question">
+  <input type="number" class="marksInput" placeholder="Marks" min="0">
+  <label><input type="checkbox"> Optional</label>
+  <button type="button" onclick="removeQuestion(this)">❌</button>
+`;
+  questionList.appendChild(div);
+}
+
+function removeQuestion(btn) {
+  btn.parentElement.remove();
+}
+
+async function generateAssignment() {
+  const course = document.getElementById('courseName').value.trim();
+  const teacher = document.getElementById('teacherName').value.trim();
+  const assignmentNum = document.getElementById('assignmentNumber').value.trim();
+  const date = document.getElementById('date').value;
+  const due = document.getElementById('dueDate').value;
+  const title = document.getElementById('title').value.trim();
+  const desc = document.getElementById('description').value.trim();
+
+  const questionInputs = document.querySelectorAll('#questionList .question');
+
+  if (!title || !course || !teacher || !assignmentNum) {
+    alert("Please fill out all main fields.");
+    return;
+  }
+
+  let questions = [];
+
+  questionInputs.forEach((q) => {
+    const questionText = q.querySelector('.questionText').value.trim();
+    const marks = q.querySelector('.marksInput').value;
+    const optional = q.querySelector('input[type="checkbox"]').checked;
+
+    if (questionText) {
+      questions.push({
+        question: questionText,
+        marks: Number(marks) || 0,
+        optional: optional
+      });
+    }
+  });
+
+  // ONLY PREVIEW (NO BACKEND CALL)
+  let assignmentText = "";
+  assignmentText += `Course: ${course}\n`;
+  assignmentText += `Teacher: ${teacher}\n`;
+  assignmentText += `Assignment: ${assignmentNum}\n`;
+  assignmentText += `Date: ${date}\n`;
+  if(due) assignmentText += `Due Date: ${due}\n`;
+  assignmentText += `\nTitle: ${title}\n\n`;
+
+  if(desc) assignmentText += `Instructions:\n${desc}\n\n`;
+
+  questions.forEach((q, i) => {
+    assignmentText += `${i+1}. ${q.question}`;
+    if(q.marks) assignmentText += ` [${q.marks} marks]`;
+    if(q.optional) assignmentText += ` (Optional)`;
+    assignmentText += "\n";
+  });
+
+  document.getElementById('preview').innerText = assignmentText;
+
+  //send button
+  document.getElementById("sendBtn").disabled = false;
+}
+
+function downloadAssignment() {
+  const text = document.getElementById('preview').innerText;
+  const type = document.getElementById('downloadType').value;
+
+  if (!text) {
+    alert("Generate the assignment first!");
+    return;
+  }
+
+  //  TEXT DOWNLOAD
+  if (type === "txt") {
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = "assignment.txt";
+    a.click();
+
+    URL.revokeObjectURL(url);
+  }
+
+  // PDF DOWNLOAD (PROPER FORMAT)
+  if (type === "pdf") {
+    const { jsPDF } = window.jspdf;
+
+    const doc = new jsPDF();
+
+    doc.setFont("Helvetica", "bold");
+    doc.text("Assignment", 80, 10);
+    doc.setFont("Helvetica", "normal");
+
+    const marginLeft = 15;
+    let y = 20;
+
+    const lineHeight = 7;
+
+    const lines = doc.splitTextToSize(text, 180);
+
+    lines.forEach(line => {
+      if (y > 280) {   // new page
+        doc.addPage();
+        y = 20;
+      }
+
+      doc.text(line, marginLeft, y);
+      y += lineHeight;
+    });
+
+    doc.save("assignment.pdf");
+  }
+}
+
+async function sendAssignment() {
+
+  if (window.isSending) return;  
+  window.isSending = true;
+  const btn = document.getElementById("sendBtn");
+  btn.disabled = true;
+
+  const course = document.getElementById('courseName').value.trim();
+  const teacher = document.getElementById('teacherName').value.trim();
+  const assignmentNum = document.getElementById('assignmentNumber').value.trim();
+  const date = document.getElementById('date').value;
+  const due = document.getElementById('dueDate').value;
+  const title = document.getElementById('title').value.trim();
+  const desc = document.getElementById('description').value.trim();
+
+  const questionInputs = document.querySelectorAll('#questionList .question');
+
+  let questions = [];
+
+  questionInputs.forEach((q) => {
+    const questionText = q.querySelector('.questionText').value.trim();
+    const marks = q.querySelector('.marksInput').value;
+    const optional = q.querySelector('input[type="checkbox"]').checked;
+
+    if (questionText) {
+      questions.push({
+        question: questionText,
+        marks: Number(marks) || 0,
+        optional: optional
+      });
+    }
+  });
+
+ 
+const selectedText = document.getElementById("classCode").selectedOptions[0].text;
+const cleanName = selectedText.split("(")[0].trim();
+
+
+const payload = {
+  course_name: course,
+  teacher_name: teacher,
+  assignment_number: assignmentNum,
+  date: date,
+  due_date: due,
+  title: title,
+  instructions: desc,
+  questions: questions,
+
+  class_code: document.getElementById("classCode").value,
+  class_name: cleanName
+};
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/teacher/assignment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("Assignment sent successfully ");
+    } else {
+      alert(data.detail || "Error");
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Server error");
+  }
+
+  window.isSending = false;
+  btn.disabled = false;
+}
+
+async function loadClasses() {
+  const res = await fetch("http://127.0.0.1:8000/classroom/my", {
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  const data = await res.json();
+
+  const select = document.getElementById("classCode");
+
+  data.forEach(c => {
+    const option = document.createElement("option");
+    option.value = c.code;
+    option.text = c.name + " (" + c.code + ")";
+    select.appendChild(option);
+  });
+}
+
+loadClasses();
+
+async function loadClassesForDropdown() {
+  const res = await fetch("http://127.0.0.1:8000/classroom/my", {
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  const data = await res.json();
+
+  const select = document.getElementById("classCode");
+  select.innerHTML = "";
+
+  data.forEach(c => {
+    const option = document.createElement("option");
+    option.value = c.code;
+    option.text = c.name + " (" + c.code + ")";
+    select.appendChild(option);
+  });
+}
+
+loadClassesForDropdown();
+
+</script>
+
+</body>
+</html>

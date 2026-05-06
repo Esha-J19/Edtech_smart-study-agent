@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concept to Diagram AI</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Inter',sans-serif;
+}
+
+body{
+  height:100vh;
+  background:
+    radial-gradient(circle at top left,#0ea5e9,transparent 40%),
+    radial-gradient(circle at bottom right,#38bdf8,transparent 45%),
+    linear-gradient(135deg,#020617,#0f172a);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+/* ---------- Center Card ---------- */
+.card{
+  width:560px;
+  background:rgba(255,255,255,0.06);
+  border-radius:18px;
+  box-shadow:0 40px 100px rgba(0,0,0,0.6);
+  padding:24px;
+  position:relative;
+  backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,0.08);
+  animation:pop 0.4s ease;
+}
+
+@keyframes pop{
+  from{transform:scale(0.9);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+
+/* ---------- Header ---------- */
+.card-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+}
+
+.title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:700;
+  font-size:1.05rem;
+  background:linear-gradient(90deg,#00f2fe,#4facfe);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.close{
+  font-size:1.2rem;
+  cursor:pointer;
+  color:#94a3b8;
+}
+
+/* ---------- Textarea ---------- */
+textarea{
+  width:100%;
+  height:140px;
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:12px;
+  padding:14px;
+  font-size:0.95rem;
+  resize:none;
+  outline:none;
+  background:rgba(2,6,23,0.8);
+  color:#e2e8f0;
+}
+
+textarea::placeholder{
+  color:#94a3b8;
+}
+
+/* ---------- Button ---------- */
+.generate-btn{
+  margin-top:16px;
+  width:100%;
+  border:none;
+  border-radius:12px;
+  padding:14px;
+  font-size:1rem;
+  font-weight:600;
+  color:#020617;
+  cursor:pointer;
+  background:linear-gradient(135deg,#4facfe,#00f2fe);
+  transition:0.3s;
+}
+
+.generate-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 15px 40px rgba(79,172,254,0.6);
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <div class="card-header">
+    <div class="title">
+       Concept to Diagram
+    </div>
+    <div class="close">✕</div>
+  </div>
+
+  <textarea id="conceptInput" placeholder="Generate a network diagram, flowchart, or system architecture..."></textarea>
+
+  <button class="generate-btn" id="generateBtn">Generate</button>
+  <div id="diagramResult" style="
+margin-top:20px;
+background:#020617;
+border-radius:10px;
+padding:20px;
+color:#e2e8f0;
+overflow:auto;
+"></div>
+
+<script>
+
+const BASE_URL = "http://127.0.0.1:8000";
+
+const conceptInput = document.getElementById("conceptInput");
+const generateBtn = document.getElementById("generateBtn");
+const diagramResult = document.getElementById("diagramResult");
+
+mermaid.initialize({ startOnLoad: false });
+
+generateBtn.addEventListener("click", async () => {
+
+  console.log("Generate button clicked");
+
+  const text = conceptInput.value.trim();
+
+  if(!text){
+    alert("Please enter a concept first");
+    return;
+  }
+
+  diagramResult.innerHTML = "Generating diagram...";
+
+  try{
+
+    const res = await fetch(`${BASE_URL}/chat/diagram`,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer " + localStorage.getItem("token")
+      },
+      body: JSON.stringify({
+        text: text
+      })
+    });
+
+    const data = await res.json();
+
+    console.log("API response:", data);
+
+if(!data.response){
+  diagramResult.innerHTML = " Invalid diagram response";
+  return;
+}
+
+const diagramCode = data.response.trim();
+
+    diagramResult.innerHTML = `<div class="mermaid">${diagramCode}</div>`;
+
+    try{
+    mermaid.run();
+    }catch(e){
+    console.log("Mermaid error:", e);
+    diagramResult.innerHTML = " Diagram syntax error";
+    }
+
+  }catch(err){
+
+    console.log(err);
+    diagramResult.innerHTML = " Server error";
+
+  }
+
+});
+
+</script>
+
+</body>
+</html>

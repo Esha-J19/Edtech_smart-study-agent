@@ -1,0 +1,950 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Study Agent</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: true });
+</script>
+<style>
+body {
+  margin: 0;
+  font-family: "Google Sans","Segoe UI",Arial,sans-serif;
+  background:#0f172a;
+  color:#e2e8f0;
+  display:flex;
+  height:100vh;
+  overflow:hidden;
+}
+.sidebar{
+  width:260px;
+  height:95vh;
+  background:linear-gradient(180deg,#020617,#0f172a);
+  padding:20px;
+  border-right:1px solid #334155;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  box-shadow: inset -1px 0 0 rgba(255,255,255,0.05), 8px 0 30px rgba(0,0,0,0.6);
+  overflow-y:auto
+}
+.sidebar-top h2{
+  font-size:1.4rem;
+  font-weight:700;
+  letter-spacing:1px;
+  margin-bottom:28px;
+  background:linear-gradient(90deg,#00f2fe,#4facfe);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.sidebar button{
+  width: 60%;
+  padding:12px 15px;
+  margin-bottom:10px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:10px;
+  color:#e2e8f0;
+  font-size:0.95rem;
+  text-align:left;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  transition: all 0.35s ease;
+  backdrop-filter:blur(8px);
+}
+.sidebar button:hover{
+  background:linear-gradient(135deg,#4facfe,#00f2fe);
+  color:#020617;
+  transform:translateX(6px) scale(1.02);
+  box-shadow:0 10px 30px rgba(79,172,254,0.45);
+}
+hr{border:none;height:1px;background:linear-gradient(90deg,transparent,#38bdf8,transparent);margin:20px 0;}
+#historyList h4{font-size:0.75rem;color:#7dd3fc;margin-bottom:10px;letter-spacing:2px;}
+#historyList div{
+  background:rgba(255,255,255,0.03);
+  border-radius:10px;
+  padding:10px;
+  margin-bottom:8px;
+  font-size:0.82rem;
+  transition: all 0.3s ease;
+  cursor:pointer;
+}
+#historyList div:hover{
+  background:rgba(56,189,248,0.15);
+  box-shadow:inset 0 0 0 1px rgba(56,189,248,0.4);
+}
+
+.prev-chats-section {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.prev-chats-title {
+  font-size: 13px;
+  color: #9ca3af;
+  margin-bottom: 8px;
+  padding-left: 6px;
+}
+
+.chat-item {
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #e5e7eb;
+  margin-bottom: 4px;
+}
+
+.chat-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.profile-box{
+  background:rgba(255,255,255,0.03);
+  border-radius:16px;
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow:0 -10px 30px rgba(0,0,0,0.5);
+  transition:0.3s;
+}
+.profile-box:hover{
+  background:linear-gradient(135deg,#0ea5e9,#38bdf8);
+  color:#020617;
+  transform:translateY(-2px);
+  cursor:pointer;
+}
+.profile-avatar{
+  width:48px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,#4facfe,#00f2fe);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:bold;color:#0f172a;
+  box-shadow:0 0 18px rgba(79,172,254,0.9);
+}
+.profile-info h4{margin:0;font-size:0.95rem;}
+.profile-info span{font-size:0.75rem;color:#94a3b8;}
+.chat-area{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  padding:20px;
+  position:relative;
+  overflow-y:auto;
+
+}
+.response{
+  background:#1e293b;
+  padding:15px;
+  border-radius:12px;
+  max-width:70%;
+  margin-bottom:80px;
+  display:none;
+  white-space:pre-wrap;
+}
+.prompt-row{
+  display:flex;
+  align-items:center;
+  background:#1e293b;
+  border-radius:20px;
+  padding:8px 12px;
+ 
+  position:fixed;
+  bottom:20px;
+  right:40px;
+  width: 850px;      
+  max-width: 90vw;
+}
+.plus-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:#334155;color:white;border:none;
+  cursor:pointer;
+}
+textarea{
+  flex:1;border:none;outline:none;resize:none;
+  background:transparent;color:#e2e8f0;padding:10px;
+}
+.enter-btn{
+  width:36px;height:36px;border-radius:50%;
+  border:none;
+  background:linear-gradient(135deg,#4facfe,#00f2fe);
+  color:#0f172a;font-weight:bold;
+  cursor:pointer;
+}
+#imgPreview{
+  max-width:250px;
+  border-radius:10px;
+  margin-bottom:10px;
+  display:none;
+}
+
+.chat-area{
+  position:relative; 
+}
+
+.upload-chip{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:#020617;
+  border:1px solid #334155;
+  padding:10px 14px;
+  border-radius:16px;
+  width:max-content;
+
+  position:absolute;
+  bottom:110px;     
+  left:60px;
+
+  box-shadow:0 8px 25px rgba(0,0,0,0.6);
+  animation: slideUp 0.25s ease;
+  z-index:20;
+transition: all 0.3s ease; 
+}
+
+
+.file-icon{
+  font-size:18px;
+}
+
+#fileName{
+  font-size:0.85rem;
+  color:#e2e8f0;
+  max-width:180px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#uploadStatus{
+  font-size:0.75rem;
+  color:#38bdf8;
+}
+
+@keyframes slideUp{
+  from{opacity:0; transform:translateY(10px)}
+  to{opacity:1; transform:translateY(0)}
+}
+.profile-panel{
+  position:fixed;
+  top:0;
+  right:0;
+  width:380px;
+  height:100%;
+  background:#020617;
+  color:#e5e7eb;
+  box-shadow:-10px 0 40px rgba(0,0,0,0.6);
+  padding:20px;
+  overflow-y:auto;
+  transform:translateX(100%);
+  transition:0.4s ease;
+  z-index:999;
+}
+
+.profile-panel.active{
+  transform:translateX(0);
+}
+
+.hidden{display:none}
+
+.profile-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.profile-header button{
+  background:none;
+  border:none;
+  color:white;
+  font-size:1.3rem;
+  cursor:pointer;
+}
+
+.profile-card{
+  background:#0f172a;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:16px;
+}
+
+.progress-bar{
+  background:#334155;
+  border-radius:10px;
+  overflow:hidden;
+  margin-top:8px;
+}
+
+.progress{
+  background:linear-gradient(90deg,#22c55e,#4ade80);
+  height:18px;
+  font-size:12px;
+  text-align:center;
+}
+
+.badges{
+  display:flex;
+  gap:10px;
+}
+
+.badge{
+  padding:10px;
+  border-radius:8px;
+  font-size:0.85rem;
+  font-weight:600;
+}
+.bronze{background:#cd7f32}
+.silver{background:#cbd5e1;color:#020617}
+.gold{background:#facc15;color:#020617}
+
+.reward{
+  background:#052e16;
+  padding:8px;
+  border-left:4px solid #22c55e;
+  margin-bottom:6px;
+}
+.reward.locked{
+  background:#1e293b;
+  border-left-color:#64748b;
+}
+
+.chat-msg{
+  max-width:60%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:12px;
+}
+
+.user{
+  background:#2563eb;
+  align-self:flex-end;
+}
+
+.bot{
+  background:#1e293b;
+  align-self:flex-start;
+}
+
+#chatMessages{
+  display:flex;
+  flex-direction:column;
+}
+
+.user{
+  background:#2563eb;
+  align-self:flex-end;
+  margin-left:auto;   
+}
+
+.bot{
+  background:#1e293b;
+  align-self:flex-start;
+  margin-right:auto;
+}
+
+.chat-msg {
+  white-space: pre-wrap;
+}
+/*  SCROLLBAR FULL CUSTOM */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background:#020617
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(56,189,248,0.4);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #38bdf8, #0ea5e9);
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-top">
+    <h2>Menu</h2>
+    <button class="menu-btn" onclick="createNewChat()">
+  New Chat
+</button>
+
+<hr>
+    <button onclick="location.href='s&q.html'"> Document Q&A</button>
+    <button onclick="location.href='squiz.html'"> Quiz Generation</button>
+    <button onclick="location.href='viiis.html'"> Visualization</button>
+    <hr>
+    <h3>Join Classroom</h3>
+
+<input type="text" id="joinCode" placeholder="Enter class code">
+<button onclick="joinClass()">Join</button>
+<button onclick="location.href='a.html'"> Announcements</button>
+<button onclick="window.location.href='my-assignments.html'">
+  My Assignments
+</button>
+<button onclick="openStudyMaterial()">Study Material</button>
+<button onclick="location.href='student-quiz.html'">  Take Quiz / Test</button>
+  </div>
+
+<!-- Previous Chats Section -->
+<div class="prev-chats-section">
+  <div class="prev-chats-title">Previous Chats</div>
+  <div id="chatHistory"></div>
+</div>
+
+
+  <div class="profile-box">
+  <div class="profile-avatar">S</div>
+   
+    <span id="studentName">Student</span>
+    <button onclick="logout()" style="margin-left:10px; width:50px; height:32px;">
+  ⏻
+</button>
+
+  </div>
+</div>
+
+
+
+<div class="chat-area">
+
+  <!--  FLOATING CHIP (input ke upar) -->
+  <div id="uploadChip" class="upload-chip" style="display:none">
+    <span class="file-icon">📄</span>
+    <span id="fileName"></span>
+    <span id="uploadStatus">✔ Uploaded</span>
+  </div>
+
+  <div id="chatMessages" style="margin-bottom:100px;"></div>
+
+  <!--  FIXED INPUT BAR -->
+  <div class="prompt-row">
+    <button class="plus-btn" onclick="uploadDoc()">+</button>
+    <textarea id="userInput" placeholder="Enter your prompt..."></textarea>
+    <button class="enter-btn" onclick="askAI()">➤</button>
+  </div>
+
+</div>
+
+
+<input type="file" id="docInput" hidden accept=".pdf,.txt">
+<div id="profilePanel" class="profile-panel hidden">
+  <div class="profile-header">
+    <button onclick="closeProfile()">✕</button>
+  </div>
+
+  <!-- STUDENT DETAILS -->
+  <div class="profile-card">
+    <h4>📄 Student Details</h4>
+    <p><b>Name:</b> Khushi Gupta</p>
+    <p><b>Email:</b> khushi@gmail.com</p>
+    <p><b>Role:</b> Student</p>
+  </div>
+
+  <!-- QUIZ PROGRESS -->
+  <div class="profile-card">
+    <h4> Quiz Progress</h4>
+    <p>Quizzes Attempted: <b>6 / 10</b></p>
+    <div class="progress-bar">
+      <div class="progress">60%</div>
+    </div>
+  </div>
+
+  <!-- BADGES -->
+  <div class="profile-card">
+    <h4>Earned Badges</h4>
+    <div class="badges">
+      <div class="badge bronze">Bronze</div>
+      <div class="badge silver">Silver</div>
+      <div class="badge gold">Gold</div>
+    </div>
+  </div>
+
+
+
+<script>
+const BASE_URL = "http://127.0.0.1:8000";
+const docInput = document.getElementById("docInput");
+const chatMessages = document.getElementById("chatMessages");
+
+/* ---------------- DOCUMENT UPLOAD ONLY ---------------- */
+
+function uploadDoc(){
+  docInput.click();
+}
+
+docInput.onchange = async () => {
+  const file = docInput.files[0];
+  if(!file) return;
+
+  const token = localStorage.getItem("token");
+  if(!token){
+    alert("Please login again");
+    return;
+  }
+
+  //  SHOW CHIP IMMEDIATELY
+  const chip = document.getElementById("uploadChip");
+  document.getElementById("fileName").innerText = file.name;
+  document.getElementById("uploadStatus").innerText = "Uploading...";
+  chip.style.display = "flex";
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("class_code", "demo123");
+  formData.append("title", file.name);
+  formData.append("material_type", "pdf");
+  formData.append("class_name", "Demo Class");
+
+  try{
+    const res = await fetch(`${BASE_URL}/documents/upload`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      },
+      body: formData
+    });
+    
+    const data = await res.json();
+    console.log("UPLOAD RESPONSE:", data);
+    if(!res.ok){
+      document.getElementById("uploadStatus").innerText = "❌ Failed";
+       setTimeout(() => {
+    chip.style.display = "none";
+  }, 3000);
+
+      return;
+    }
+
+    //  SUCCESS STATE
+    document.getElementById("uploadStatus").innerText = "✔ Uploaded";
+  //  OPTIONAL: refresh sidebar if same page
+    if (typeof loadPDFSidebar === "function") {
+      loadPDFSidebar();
+    }
+    setTimeout(() => {
+    const chip = document.getElementById("uploadChip");
+    chip.style.opacity = "0";
+    chip.style.transform = "translateY(10px)";
+
+  setTimeout(() => {
+    chip.style.display = "none";
+    chip.style.opacity = "1";
+    chip.style.transform = "translateY(0)";
+  }, 300);
+}, 3000);
+
+    // optional: 3 sec baad chip hide
+
+  }catch(err){
+    document.getElementById("uploadStatus").innerText = " Error";
+    setTimeout(() => {
+    chip.style.display = "none";
+  }, 3000);
+  }
+};
+/*-----------------MERMAID TEXT---------------------------------*/
+function cleanMermaid(text){
+
+  // remove code blocks
+  text = text.replace(/```/g, "");
+
+  // extract only graph TD part
+  const match = text.match(/graph TD[\s\S]*/);
+  if(match){
+    text = match[0];
+  }
+
+  const lines = text.split("\n");
+  const clean = ["graph TD"];
+
+  lines.forEach(line => {
+    line = line.trim();
+
+    if(line.includes("-->")){
+
+      
+      let parts = line.split("-->");
+      if(parts.length === 2){
+        let left = parts[0].trim();
+        let right = parts[1].trim();
+
+        
+        if(!left.includes("[")) left += "[Node]";
+        if(!right.includes("[")) right += "[Node]";
+
+        // remove extra junk
+        left = left.replace(/[^a-zA-Z0-9\[\]\s]/g, "");
+        right = right.replace(/[^a-zA-Z0-9\[\]\s]/g, "");
+
+        clean.push(`${left} --> ${right}`);
+      }
+    }
+  });
+
+  return clean.join("\n");
+}
+
+/* ---------------- LOAD REAL USER FROM BACKEND ---------------- */
+
+(function loadUser(){
+  const token = localStorage.getItem("token");
+  if(!token){
+  console.log("Token missing");
+  return;
+}
+
+  fetch(`${BASE_URL}/auth/me`, {
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    console.log("USER:", data);
+
+    //  REAL DATA (NO STATIC)
+    document.getElementById("studentName").innerText = data.name;
+
+    
+    if(document.getElementById("userRole")){
+      document.getElementById("userRole").innerText = data.role;
+    }
+  })
+  .catch(() => {
+  console.log("Auth error");
+});
+})();
+
+/* ---------------- LOGOUT ---------------- */
+
+function logout(){
+  localStorage.removeItem("token");
+  window.location.replace("j.html");
+}
+
+async function askAI(){
+
+  const input = document.getElementById("userInput");
+  const text = input.value.trim();
+  if(!text) return;
+
+  const chatBox = document.getElementById("chatMessages");
+
+  //  USER MESSAGE
+  chatBox.innerHTML += `
+    <div class="chat-msg user">${text}</div>
+  `;
+
+  input.value = "";
+
+  let endpoint = "/chat/ask";
+  let body = {};
+
+  const lower = text.toLowerCase();
+
+  if(lower.includes("summarize")){
+  endpoint = "/chat/ask";
+  body = { prompt: text };
+}
+else if(lower.includes("quiz")){
+  endpoint = "/chat/quiz";
+
+  const num_mcq = prompt("How many MCQs?");
+  const num_subjective = prompt("How many subjective questions?");
+  const difficulty = prompt("Difficulty? (easy / medium / hard)");
+
+  body = {
+    topic: text,
+    num_mcq: parseInt(num_mcq) || 3,
+    num_subjective: parseInt(num_subjective) || 1,
+    difficulty: difficulty || "medium"
+  };
+}
+else if(lower.includes("diagram")){
+  endpoint = "/chat/visualize";
+  body = { text };
+}
+else{
+  endpoint = "/chat/ask";
+  body = { prompt: text };
+}
+  
+
+  //  BOT LOADING
+  chatBox.innerHTML += `
+    <div class="chat-msg bot" id="loading">Thinking...</div>
+  `;
+
+  try{
+    const res = await fetch(`${BASE_URL}${endpoint}`,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify(body)
+    });
+
+    const data = await res.json();
+
+    document.getElementById("loading").remove();
+
+let output = "";
+
+//  PRIORITY: diagram first
+if (data.diagram) {
+  output = data.diagram;
+}
+else if (data.response && typeof data.response === "string") {
+  output = data.response;
+}
+else if (data.response && data.response.response) {
+  output = data.response.response;
+}
+else {
+  output = JSON.stringify(data, null, 2);
+}
+
+  //  ADD THIS HERE
+  //  DIAGRAM OR NORMAL RESPONSE
+if(output.includes("graph TD")){
+
+  const cleanDiagram = cleanMermaid(output);
+
+  
+  if(cleanDiagram.trim() === "graph TD"){
+    chatBox.innerHTML += `
+      <div class="chat-msg bot">
+         Diagram generation failed. Try again.
+      </div>
+    `;
+  } else {
+
+    const id = "mermaid_" + Date.now();
+
+    chatBox.innerHTML += `
+      <div class="chat-msg bot">
+        <div class="mermaid" id="${id}">
+          ${cleanDiagram}
+        </div>
+      </div>
+    `;
+
+    // SAFE RENDER
+    try {
+      const el = document.getElementById(id);
+      if(el){
+        mermaid.run({
+          nodes: [el]
+        });
+      }
+    } catch (err) {
+      console.error("MERMAID CRASH:", err);
+
+      document.getElementById(id).innerHTML = `
+         Invalid diagram generated
+      `;
+    }
+  }
+
+} else {
+
+  //  NORMAL TEXT RESPONSE
+  chatBox.innerHTML += `
+    <div class="chat-msg bot">
+      ${output.replace(/\\n/g, "<br>")}
+    </div>
+  `;
+}
+
+//  ALWAYS KEEP THIS
+chatBox.scrollTop = chatBox.scrollHeight;
+  }
+  catch(err){
+  console.error(err);
+
+  document.getElementById("loading").innerText = "Error";
+}
+}
+
+
+async function loadChatHistory() {
+
+  const res = await fetch(`${BASE_URL}/chat/history`, {
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  const chats = await res.json();
+
+  const historyDiv = document.getElementById("chatHistory");
+  historyDiv.innerHTML = "";
+
+  chats.forEach(chat => {
+
+  let questionsHTML = "";   
+
+  //  FIX: a → chat
+  chat.questions.forEach((q, i) => {
+    questionsHTML += `
+      <p>${i+1}. ${q.question} (${q.marks} marks) ${q.optional ? "(Optional)" : ""}</p>
+    `;
+  });
+
+  const div = document.createElement("div");
+
+  div.innerHTML = `
+    <h3>${chat.title}</h3>
+    <p><b>Course:</b> ${chat.course_name}</p>
+    <p><b>Teacher:</b> ${chat.teacher_name}</p>
+    <p><b>Due Date:</b> ${chat.due_date}</p>
+
+    <h4>Questions:</h4>
+    ${questionsHTML}
+
+    <a href="http://127.0.0.1:8000/student/assignment-pdf/${chat._id}" target="_blank">
+      📄 View PDF
+    </a>
+  `;
+
+  historyDiv.appendChild(div);
+});
+
+}
+
+function createNewChat() {
+  location.reload();   
+}
+
+async function summarizePDF(){
+
+  const token = localStorage.getItem("token");
+
+  if(!token){
+    alert("Please login again");
+    return;
+  }
+
+  chatMessages.style.display = "block";
+  chatMessages.innerText = "Generating summary...";
+
+  const res = await fetch(`${BASE_URL}/chat/summarize`,{
+      method:"POST",
+      headers:{
+        "Authorization": `Bearer ${token}`
+      }
+  });
+
+  const data = await res.json();
+
+  chatMessages.innerText = data.response;
+}
+
+async function generateQuiz(){
+
+  const token = localStorage.getItem("token");
+
+  if(!token){
+    alert("Please login again");
+    return;
+  }
+
+  chatMessages.style.display = "block";
+  chatMessages.innerText = "Generating quiz...";
+
+  const res = await fetch(`${BASE_URL}/chat/quiz`,{
+      method:"POST",
+      headers:{
+        "Authorization": `Bearer ${token}`
+      }
+  });
+
+  const data = await res.json();
+
+  chatMessages.innerText = data.response;
+}
+
+async function generateDiagram(){
+
+  const token = localStorage.getItem("token");
+
+  if(!token){
+    alert("Please login again");
+    return;
+  }
+
+  chatMessages.style.display = "block";
+  chatMessages.innerText = "Generating diagram...";
+
+  const res = await fetch(`${BASE_URL}/chat/diagram`,{
+      method:"POST",
+      headers:{
+        "Authorization": `Bearer ${token}`
+      }
+  });
+
+  const data = await res.json();
+
+  chatMessages.innerText = data.response;
+}
+
+async function joinClass() {
+  const code = document.getElementById("joinCode").value;
+
+  const res = await fetch("http://127.0.0.1:8000/classroom/join", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    },
+    body: JSON.stringify({ code })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+}
+
+async function leaveClass(code) {
+
+  if (!confirm("Leave this class?")) return;
+
+  const res = await fetch(`http://127.0.0.1:8000/classroom/leave/${code}`, {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  if (res.ok) {
+    alert("Left class");
+    location.reload();
+  } else {
+    alert("Error");
+  }
+}
+
+function openStudyMaterial() {
+  window.location.href = "student-material.html";
+}
+
+
+</script>
+
+
+</body>
+</html>

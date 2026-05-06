@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EdTech Smart Study Agent</title>
+
+<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  height:100vh;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  background:linear-gradient(135deg,#0f172a,#1e293b,#312e81);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+  color:white;
+  cursor:default;
+}
+
+.main-wrapper{
+  display:flex;
+  align-items:center;
+  gap:60px;
+}
+
+.background-heading{
+  position:absolute;
+  top:6%;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:2.4rem;
+  font-weight:800;
+  background:linear-gradient(to right,#a5b4fc,#f472b6);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  letter-spacing:2px;
+}
+
+.brand-icon{
+  position:absolute;
+  top:20px;
+  left:25px;
+  font-size:2rem;
+  color:#c7d2fe;
+}
+
+.animation-box{
+  width:420px;
+}
+
+.container{
+  width:420px;
+  padding:2.2rem;
+  border-radius:18px;
+  background:rgba(255,255,255,0.15);
+  backdrop-filter:blur(18px);
+  box-shadow:0 20px 50px rgba(0,0,0,0.4);
+  text-align:center;
+  margin-top: 80px;
+}
+
+h2{
+  margin-bottom:1.5rem;
+  font-size:1.8rem;
+  font-weight:700;
+}
+
+.form-control{
+  width:100%;
+  padding:0.85rem;
+  margin:0.6rem 0;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.3);
+  background:rgba(255,255,255,0.12);
+  color:white;
+  font-size:1rem;
+  outline:none;
+}
+
+.form-control::placeholder{
+  color:rgba(255,255,255,0.3);
+}
+
+button.form-control{
+  background:linear-gradient(to right,#6366f1,#8b5cf6);
+  border:none;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button.form-control:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 20px rgba(0,0,0,0.3);
+}
+
+.link{
+  margin-top:1rem;
+  font-size:0.95rem;
+}
+
+.link a{
+  color:#a5b4fc;
+  font-weight:600;
+  text-decoration:none;
+  cursor:pointer;
+}
+
+.forgot{
+  text-align:right;
+  font-size:0.85rem;
+}
+
+.hidden{display:none}
+
+select.form-control {
+  background-color:#ffffff!important;
+  color:#111827!important;
+  font-weight:600;
+}
+select.form-control option{
+  background:#ffffff;
+  color:#111827;
+}
+
+</style>
+</head>
+
+<body>
+
+
+<div class="background-heading">Ed-Tech Smart Study Agent</div>
+<div class="brand-icon"><i class="fas fa-graduation-cap"></i></div>
+
+<div class="main-wrapper">
+
+<div class="animation-box">
+<lottie-player
+src="https://assets9.lottiefiles.com/packages/lf20_qp1q7mct.json"
+background="transparent"
+speed="1"
+style="width:380px;height:380px"
+loop autoplay>
+</lottie-player>
+</div>
+
+<div class="container">
+
+<!-- SIGN IN -->
+<div id="signin-form">
+<h2>Sign in</h2>
+
+<input id="login-email" class="form-control" placeholder="Email">
+<input id="login-password" type="password" class="form-control" placeholder="Password (9-15 characters)">
+
+<div class="forgot">
+<a onclick="showForm('forgot-form')">Forgot Password?</a>
+</div>
+
+<button class="form-control" onclick="login()">Login</button>
+
+<input id="signin-otp" class="form-control hidden" placeholder="Enter OTP">
+<button id="signin-btn" class="form-control hidden" onclick="verifyOTP()">
+Verify OTP & Login
+</button>
+
+
+
+<div class="link">
+Don’t have an account?
+<a onclick="showForm('signup-form')">Sign Up</a>
+</div>
+</div>
+
+<!-- SIGN UP -->
+<div id="signup-form" class="hidden">
+<h2>Create Account</h2>
+
+<select id="role" class="form-control" onchange="openRoleForm()">
+<option disabled selected>Select Role</option>
+<option value="student">Student</option>
+<option value="teacher">Teacher</option>
+</select>
+
+<div class="link">
+<a onclick="showForm('signin-form')">Back to Sign In</a>
+</div>
+</div>
+
+<!-- STUDENT -->
+<div id="student-form" class="hidden">
+<h2>Student Registration</h2>
+
+<input class="form-control" placeholder="Full Name">
+<input class="form-control" placeholder="Email">
+<input type="password" class="form-control" placeholder="Password">
+
+
+<button class="form-control" onclick="sendOTP('student')">Send Verification Code</button>
+
+<input id="student-otp" class="form-control hidden" placeholder="Enter OTP">
+<button id="student-btn" class="form-control hidden" onclick="verifyOTP()">Register</button>
+
+<div class="link"><a onclick="showForm('signup-form')">Back</a></div>
+</div>
+
+<!-- TEACHER -->
+<div id="teacher-form" class="hidden">
+<h2>Teacher Registration</h2>
+
+<input class="form-control" placeholder="Full Name">
+<input class="form-control" placeholder="Email">
+<input type="password" class="form-control" placeholder="Password">
+
+
+
+<button class="form-control" onclick="sendOTP('teacher')">Send Verification Code</button>
+
+<input id="teacher-otp" class="form-control hidden" placeholder="Enter OTP">
+<button id="teacher-btn" class="form-control hidden" onclick="verifyOTP()">Register</button>
+
+<div class="link"><a onclick="showForm('signup-form')">Back</a></div>
+</div>
+
+<!-- FORGOT PASSWORD (UPDATED) -->
+<div id="forgot-form" class="hidden">
+<h2>Reset Password</h2>
+
+<input class="form-control" placeholder="Email">
+
+<button class="form-control" onclick="sendOTP('forgot')">Send OTP</button>
+
+<input id="forgot-otp" class="form-control hidden" placeholder="Enter OTP">
+<button id="forgot-btn" class="form-control hidden" onclick="vOTP()">
+Verify OTP 
+</button>
+
+<input type="password" id="new-pass" class="form-control hidden"
+placeholder="New Password (9-15 characters)">
+
+<input type="password" id="confirm-pass" class="form-control hidden"
+placeholder="Confirm Password (9-15 characters)">
+
+<button id="forgot-btn" class="form-control"  onclick="verifyForgotOTP()">
+Reset password
+</button>
+
+
+<div class="link"><a onclick="showForm('signin-form')">Back</a></div>
+</div>
+
+</div>
+</div>
+
+<script>
+const BASE_URL = "http://127.0.0.1:8000";
+
+/* ---------------- UI HELPERS ---------------- */
+function showForm(id){
+  ["signin-form","signup-form","student-form","teacher-form","forgot-form"]
+  .forEach(f => document.getElementById(f).classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function openRoleForm(){
+  const r = document.getElementById("role").value;
+  if(r === "student") showForm("student-form");
+  if(r === "teacher") showForm("teacher-form");
+}
+
+/* ---------------- SEND OTP (EMAIL) ---------------- */
+
+async function sendOTP(role){
+  let email = "";
+
+  if(role === "student"){
+    email = document.querySelector("#student-form input[placeholder='Email']").value;
+  }
+  if(role === "teacher"){
+    email = document.querySelector("#teacher-form input[placeholder='Email']").value;
+  }
+  if(role === "forgot"){
+    email = document.querySelector("#forgot-form input[placeholder='Email']").value;
+  }
+
+  if(!email){
+    alert("Please enter email");
+    return;
+  }
+
+  try{
+    const res = await fetch(`${BASE_URL}/auth/send-otp`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        email: email,
+        role: role   
+      })
+    });
+
+    const data = await res.json();
+    if(!res.ok){
+      alert(data.detail || "Failed to send OTP");
+      return;
+    }
+
+    alert("OTP sent to your email");
+
+    if(role === "student"){
+      document.getElementById("student-otp").classList.remove("hidden");
+      document.getElementById("student-btn").classList.remove("hidden");
+    }
+
+    if(role === "teacher"){
+      document.getElementById("teacher-otp").classList.remove("hidden");
+      document.getElementById("teacher-btn").classList.remove("hidden");
+    }
+
+    if(role === "forgot"){
+      document.getElementById("forgot-otp").classList.remove("hidden");
+      document.getElementById("forgot-btn").classList.remove("hidden");
+    }
+
+  }catch(err){
+    alert("Backend not reachable");
+  }
+}
+
+
+/* ---------------- VERIFY OTP + SIGNUP ---------------- */
+async function verifyOTP(){
+  const isStudent = !document.getElementById("student-form").classList.contains("hidden");
+  const isTeacher = !document.getElementById("teacher-form").classList.contains("hidden");
+
+  let email = "", otp = "", payload = {};
+
+  if(isStudent){
+    email = document.querySelector("#student-form input[placeholder='Email']").value;
+    otp = document.getElementById("student-otp").value;
+
+    payload = {
+      name: document.querySelector("#student-form input[placeholder='Full Name']").value,
+      email,
+      password: document.querySelector("#student-form input[placeholder='Password']").value,
+      role: "student"
+    };
+  }
+
+  if(isTeacher){
+    email = document.querySelector("#teacher-form input[placeholder='Email']").value;
+    otp = document.getElementById("teacher-otp").value;
+
+    payload = {
+      name: document.querySelector("#teacher-form input[placeholder='Full Name']").value,
+      email,
+      password: document.querySelector("#teacher-form input[placeholder='Password']").value,
+      
+      role: "teacher"
+    };
+  }
+
+  /* VERIFY OTP */
+  const verifyRes = await fetch(`${BASE_URL}/auth/verify-otp`,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ email, otp })
+  });
+
+  const verifyData = await verifyRes.json();
+  if(!verifyRes.ok){
+    alert(verifyData.detail || "Invalid OTP");
+    return;
+  }
+
+  /* REGISTER */
+  const regRes = await fetch(`${BASE_URL}/auth/register`,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const regData = await regRes.json();
+  if(!regRes.ok){
+    alert(regData.detail || "Signup failed");
+    return;
+  }
+
+  alert("Registration successful");
+  showForm("signin-form");
+}
+
+/* ---------------- SIGN IN (EMAIL + PASSWORD) ---------------- */
+
+async function login(){
+  const email = document.getElementById("login-email").value;
+  const password = document.getElementById("login-password").value;
+
+  if(!email || !password){
+    alert("Enter email and password");
+    return;
+  }
+
+  try{
+    const res = await fetch(`${BASE_URL}/auth/login`,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.detail || "Invalid credentials");
+      return;
+    }
+
+    //  Save token
+    localStorage.setItem("token", data.access_token);
+
+    //  Decode JWT to get role
+    const payload = JSON.parse(atob(data.access_token.split(".")[1]));
+    const role = payload.role;
+
+    //  Role based redirect
+    if(role === "teacher"){
+      window.location.href = "teacher.html";
+    } else {
+      window.location.href = "student.html";
+    }
+
+  }catch(err){
+    alert("Backend not reachable");
+  }
+}
+
+
+/* ---------------- RESET PASSWORD ---------------- */
+async function verifyForgotOTP(){
+  const email = document.querySelector("#forgot-form input[placeholder='Email']").value;
+  const otp = document.getElementById("forgot-otp").value;
+  const new_password = document.getElementById("new-pass").value;
+  const confirm_password = document.getElementById("confirm-pass").value;
+
+  if(new_password !== confirm_password){
+    alert("Passwords do not match");
+    return;
+  }
+
+  const res = await fetch(`${BASE_URL}/auth/reset-password`,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ email, otp, new_password })
+  });
+
+  const data = await res.json();
+  if(!res.ok){
+    alert(data.detail || "Reset failed");
+    return;
+  }
+
+  alert("Password reset successful");
+  showForm("signin-form");
+}
+
+/* ---------- FORGOT PASSWORD: VERIFY OTP (MISSING FUNCTION) ---------- */
+async function vOTP(){
+  const email = document.querySelector(
+    "#forgot-form input[placeholder='Email']"
+  ).value;
+
+  const otp = document.getElementById("forgot-otp").value;
+
+  if(!email || !otp){
+    alert("Please enter email and OTP");
+    return;
+  }
+
+  try{
+    const res = await fetch(`${BASE_URL}/auth/verify-otp`,{
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, otp })
+    });
+
+    const data = await res.json();
+
+    if(!res.ok){
+      alert(data.detail || "Invalid OTP");
+      return;
+    }
+
+    //  OTP verified → show password reset fields
+    document.getElementById("new-pass").classList.remove("hidden");
+    document.getElementById("confirm-pass").classList.remove("hidden");
+
+    alert("OTP verified successfully");
+
+  }catch(err){
+    alert("Server error while verifying OTP");
+  }
+}
+
+</script>
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Assignments</title>
+
+  <style>
+    body {
+      background: linear-gradient(to right, #0a0f2c, #0d1b3d);
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      text-align: center;
+      color: #3e84ca;
+      font-size: 38px;
+      margin: 30px 0;
+    }
+
+    .assignment-box {
+      width: 65%;
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+    }
+
+    h3 {
+      color: #3e84ca;
+      margin-bottom: 10px;
+    }
+
+    h4 {
+      margin: 10px 0;
+    }
+
+    p {
+      color: #dcdcdc;
+    }
+
+    a {
+      color: #3e84ca;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    button {
+      background: #1c449a;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #3e84ca;
+    }
+
+    input[type="file"] {
+      color: white;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<h1>My Assignments</h1>
+
+<div id="assignmentList"></div>
+
+<script>
+async function loadAssignments() {
+  try {
+    const res = await fetch("http://127.0.0.1:8000/student/assignments", {
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      }
+    });
+
+    const data = await res.json();
+
+    const container = document.getElementById("assignmentList");
+    container.innerHTML = "";
+
+    if (data.length === 0) {
+      container.innerHTML = "<p style='text-align:center;'>No assignments found</p>";
+      return;
+    }
+
+    data.forEach(a => {
+      const div = document.createElement("div");
+
+      div.className = "assignment-box";
+
+      div.innerHTML = `
+        <h3>${a.class_name || "Class"} (${a.class_code})</h3>
+
+        <hr>
+
+        <h4>${a.title}</h4>
+        <p><b>Due Date:</b> ${a.due_date}</p>
+        <p><b>Posted by:</b> ${a.teacher_name}</p>
+
+        <a href="http://127.0.0.1:8000/student/assignment-pdf/${a._id}" target="_blank">
+          View PDF
+        </a>
+
+        <p>
+          <input type="file" id="file-${a._id}">
+          <button onclick="submitAssignment('${a._id}')">Submit</button>
+        </p>
+      `;
+
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    console.error(err);
+    alert("Error loading assignments");
+  }
+}
+
+loadAssignments();
+
+async function submitAssignment(id) {
+  const fileInput = document.getElementById(`file-${id}`);
+  const file = fileInput.files[0];
+
+  if (!file) {
+    alert("Select a file first");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`http://127.0.0.1:8000/student/submit-assignment/${id}`, {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    },
+    body: formData
+  });
+
+  const data = await res.json();
+  alert(data.message);
+}
+</script>
+
+</body>
+</html>

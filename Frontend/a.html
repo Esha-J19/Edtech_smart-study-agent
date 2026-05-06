@@ -1,1 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Announcement</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Inter',sans-serif;
+}
+
+body{
+  height:100vh;
+  background:
+    radial-gradient(circle at top left,#0ea5e9,transparent 40%),
+    radial-gradient(circle at bottom right,#38bdf8,transparent 45%),
+    linear-gradient(135deg,#020617,#0f172a);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ---------- Center Card ---------- */
+.card{
+  width:1000px;
+  height: 500px;
+  background:rgba(255,255,255,0.06);
+  border-radius:18px;
+  box-shadow:0 40px 100px rgba(0,0,0,0.6);
+  padding:24px;
+  backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,0.08);
+}
+
+/* ---------- Header ---------- */
+.title{
+  text-align:center;
+  font-weight:700;
+  font-size:1.2rem;
+  margin-bottom:18px;
+  background:linear-gradient(90deg,#00f2fe,#4facfe);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+/* ---------- Input ---------- */
+input{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.15);
+  background:rgba(2,6,23,0.8);
+  color:#e2e8f0;
+  outline:none;
+  margin-bottom:14px;
+}
+
+input::placeholder{
+  color:#94a3b8;
+}
+
+/* ---------- Button ---------- */
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  font-size:1rem;
+  font-weight:600;
+  cursor:pointer;
+  background:linear-gradient(135deg,#4facfe,#00f2fe);
+  color:#020617;
+}
+
+/* ---------- Announcement ---------- */
+.announcement{
+  margin-top:18px;
+  text-align:center;
+  color:#e2e8f0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <div class="title"> Announcement</div>
+
+  <div class="announcement" id="announcement"></div>
+</div>
+
+<script>
+async function loadAnnouncements(){
+  const box = document.getElementById("announcement");
+
+  box.innerHTML = "Loading announcements...";
+
+  try {
+    const res = await fetch("http://localhost:8000/announcements/student", {
+  headers: {
+    "Authorization": "Bearer " + localStorage.getItem("token")
+  }
+});
+    const data = await res.json();
+
+if (!Array.isArray(data) || data.length === 0) {
+  box.innerHTML = "<p>No announcements yet</p>";
+  return;
+}
+
+let html = "";
+
+data.forEach(a => {
+  html += `
+    <div style="margin-bottom:15px;">
+      <h3>${a.title}</h3>
+      <p>${a.message}</p>
+      <small>${new Date(a.created_at).toLocaleString()}</small>
+    </div>
+    <hr>
+  `;
+});
+
+box.innerHTML = html;
+
+  } catch(err){
+    box.innerHTML = "<p>Error loading announcements</p>";
+    console.log(err);
+  }
+}
+
+//  AUTO LOAD ON PAGE OPEN
+loadAnnouncements();
+</script>
+
+</body>
+</html>

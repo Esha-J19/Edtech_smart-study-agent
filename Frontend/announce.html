@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Announcements</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body {
+  margin: 0;
+  margin-top: 80px;
+  display: flex;
+align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at top left, #dbeafe, transparent 60%),
+    radial-gradient(circle at bottom right, #bfdbfe, transparent 60%),
+    #f8fafc;
+}
+
+    .container {
+      margin-bottom: 10%;
+      max-width: 900px;
+      background: #ffffff;
+      padding: 30px 40px;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    h1 { text-align: center; color: #1e3a8a; margin-bottom: 20px; }
+
+    label { display: block; margin-top: 15px; font-weight: 600; }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    textarea { resize: vertical; }
+
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #1e3a8a;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 20px;
+    }
+
+    button:hover { background: #2563eb; }
+
+    .announcement-list {
+      margin-top: 30px;
+    }
+
+    .announcement {
+      background: #e0f2fe;
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      border-left: 6px solid #1e3a8a;
+    }
+
+    .announcement h3 {
+      margin: 0 0 6px;
+      color: #1e3a8a;
+    }
+
+    .meta {
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 8px;
+    }
+
+    .announcement p {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1> Announcements</h1>
+
+  <label>Announcement Title</label>
+  <input type="text" id="title" placeholder="Enter announcement title">
+
+  <label>Class / Course</label>
+  <input type="text" id="course" placeholder="e.g. Btech 1st sem ">
+
+  <select id="classSelect"></select>
+
+  <label>Announcement Type</label>
+  <select id="type">
+    <option value="General">General</option>
+    <option value="Exam">Exam</option>
+    <option value="Assignment">Assignment</option>
+    <option value="Important">Important</option>
+  </select>
+
+  <label>Message</label>
+  <textarea id="message" rows="4" placeholder="Write announcement here..."></textarea>
+
+  <button onclick="postAnnouncement()">Post Announcement</button>
+
+  <div class="announcement-list" id="announcementList"></div>
+</div>
+
+<script>
+  async function loadClasses() {
+  const res = await fetch("http://127.0.0.1:8000/classroom/my", {
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  const data = await res.json();
+
+  const select = document.getElementById("classSelect");
+
+  select.innerHTML = ""; // clear first
+
+  data.forEach(c => {
+    const option = document.createElement("option");
+    option.value = c.code;
+    option.text = c.name + " (" + c.code + ")";
+    select.appendChild(option);
+  });
+}
+
+loadClasses();
+
+async function postAnnouncement() {
+  const title = document.getElementById('title').value.trim();
+  const course = document.getElementById('course').value.trim();
+  const type = document.getElementById('type').value;
+  const message = document.getElementById('message').value.trim();
+  const class_code = document.getElementById("classSelect").value;
+
+  if (!title || !course || !message) {
+    alert('Please fill all fields');
+    return;
+  }
+
+  const token = localStorage.getItem("token");
+
+  try {
+    const res = await fetch("http://localhost:8000/announcements/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify({
+        title: title,
+        message: `${course} • ${type} • ${message}`,
+        class_code: class_code
+      })
+    });
+
+    const data = await res.json();
+    alert(data.message);
+
+   
+    const div = document.createElement('div');
+    div.className = 'announcement';
+
+    const date = new Date().toLocaleString();
+
+    div.innerHTML = `
+      <h3>${title}</h3>
+      <div class="meta">${course} • ${type} • ${date}</div>
+      <p>${message}</p>
+    `;
+
+    document.getElementById('announcementList').prepend(div);
+
+    // clear fields
+    document.getElementById('title').value = '';
+    document.getElementById('course').value = '';
+    document.getElementById('message').value = '';
+    
+
+  } catch (err) {
+    alert("Error posting announcement");
+    console.log(err);
+  }
+}
+</script>
+
+</body>
+</html>

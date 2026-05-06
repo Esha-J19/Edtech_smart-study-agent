@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Quiz Creator</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { background: #f3f4f6; margin: 0; padding: 0; }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: #ffffff;
+      padding: 30px 40px;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    h1 { text-align: center; color: #1e3a8a; margin-bottom: 20px; }
+
+    label { display: block; margin-top: 15px; font-weight: 600; }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    textarea { resize: vertical; }
+
+    .question-box {
+      margin-top: 20px;
+      padding: 20px;
+      background: #f8fafc;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .options {
+      margin-top: 10px;
+    }
+
+    .option {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    .option input[type="text"] { flex: 1; }
+
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #1e3a8a;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 15px;
+    }
+
+    button:hover { background: #2563eb; }
+
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+
+    #preview {
+      margin-top: 30px;
+      padding: 20px;
+      background: #e0f2fe;
+      border-radius: 12px;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1> Create Quiz</h1>
+
+  <label>Quiz Title</label>
+  <input type="text" id="quizTitle" placeholder="Enter quiz title">
+
+  <label>Subject</label>
+  <input type="text" id="subject" placeholder="Enter subject">
+
+  <label>Time Limit (minutes)</label>
+  <input type="number" id="timeLimit" placeholder="e.g. 30">
+
+  <label>Select Class</label>
+  <select id="classSelect"></select>
+
+  <div class="question-box">
+    <h3>Add Question</h3>
+
+    <label>Question</label>
+    <textarea id="questionText" rows="2"></textarea>
+
+    <label>Options</label>
+    <div class="options">
+      <div class="option"><input type="text" placeholder="Option A"></div>
+      <div class="option"><input type="text" placeholder="Option B"></div>
+      <div class="option"><input type="text" placeholder="Option C"></div>
+      <div class="option"><input type="text" placeholder="Option D"></div>
+    </div>
+
+    <label>Correct Answer</label>
+    <select id="correctAnswer">
+      <option value="A">Option A</option>
+      <option value="B">Option B</option>
+      <option value="C">Option C</option>
+      <option value="D">Option D</option>
+    </select>
+
+    <button onclick="addQuestion()">Add Question</button>
+  </div>
+
+    <div class="actions">
+    <button onclick="generateQuiz()">Generate Quiz</button>
+    <button onclick="sendQuiz()">Send to Students</button>
+  </div>
+
+  <div id="preview"></div>
+</div>
+
+<script>
+let questions = [];
+let studentQuizText = "";
+
+function addQuestion() {
+  const q = document.getElementById('questionText').value.trim();
+  const opts = document.querySelectorAll('.options input');
+  const correct = document.getElementById('correctAnswer').value;
+
+  if (!q) {
+    alert('Enter question text');
+    return;
+  }
+
+  const options = [];
+  opts.forEach(o => options.push(o.value));
+
+  questions.push({ question: q, options, correct });
+
+  document.getElementById('questionText').value = '';
+  opts.forEach(o => o.value = '');
+
+  alert('Question added!');
+}
+
+function generateQuiz() {
+  const title = document.getElementById('quizTitle').value;
+  const subject = document.getElementById('subject').value;
+  const time = document.getElementById('timeLimit').value;
+
+  if (!title || questions.length === 0) {
+    alert('Add quiz title and at least one question');
+    return;
+  }
+
+  let teacherText = `Quiz: ${title}\nSubject: ${subject}\nTime Limit: ${time} minutes\n\n`;
+  let studentText = `Quiz: ${title}\nSubject: ${subject}\nTime Limit: ${time} minutes\n\nInstructions: Answer all questions. Correct answers will be shown after submission.\n\n`;
+
+  questions.forEach((q, i) => {
+    teacherText += `${i+1}. ${q.question}\n`;
+    studentText += `${i+1}. ${q.question}\n`;
+
+    q.options.forEach((o, idx) => {
+      const opt = `   ${String.fromCharCode(65+idx)}. ${o}\n`;
+      teacherText += opt;
+      studentText += opt;
+    });
+
+    teacherText += `   Correct Answer: ${q.correct}\n\n`;
+    studentText += `   Your Answer: ________\n\n`;
+  });
+
+  studentQuizText = studentText;
+  document.getElementById('preview').innerText = teacherText;
+}
+
+
+async function sendQuiz() {
+  const token = localStorage.getItem("token");
+
+  const select = document.getElementById("classSelect");
+  const class_code = select.value;
+
+  const res = await fetch("http://localhost:8000/quiz/create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({
+      title: document.getElementById("quizTitle").value,
+      subject: document.getElementById("subject").value,
+      time_limit: document.getElementById("timeLimit").value,
+      questions: questions,
+      class_code: class_code
+    })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+}
+
+async function loadClasses() {
+  const res = await fetch("http://127.0.0.1:8000/classroom/my", {
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  const data = await res.json();
+
+  const select = document.getElementById("classSelect");
+
+  data.forEach(c => {
+    const option = document.createElement("option");
+    option.value = c.code;
+    option.text = c.name + " (" + c.code + ")";
+    select.appendChild(option);
+  });
+}
+
+loadClasses();
+
+
+
+</script>
+
+</body>
+</html>

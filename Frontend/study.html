@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload Study Material</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+body {
+  margin: 0;
+  display: flex;
+  align-items: center;      /* vertical center */
+  justify-content: center; 
+  background:
+    radial-gradient(circle at top left, #dbeafe, transparent 60%),
+    radial-gradient(circle at bottom right, #bfdbfe, transparent 60%),
+    #f8fafc;
+}
+
+.container {
+ margin-bottom: 80px;
+ margin-top: 120px;
+  max-width: 500px;
+  width: 100%;
+  background: #ffffff;
+  padding: 30px 40px;
+  border-radius: 14px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+
+h1 {
+  text-align: center;
+  color: #1e3a8a;
+  margin-bottom: 25px;
+}
+
+label {
+  display: block;
+  margin-top: 15px;
+  font-weight: 600;
+}
+
+input, select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 6px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+button {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #1e3a8a;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 20px;
+  width: 100%;
+}
+
+button:hover {
+  background: #2563eb;
+}
+
+.list {
+  margin-top: 30px;
+}
+
+.item {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1> Study Material</h1>
+
+  <label>Select Class</label>
+<select id="classSelect"></select>
+
+  <label>Material Type</label>
+  <select id="type">
+    <option>Lecture Notes</option>
+    <option>Handouts</option>
+    <option>Question Paper</option>
+    <option>PYQs</option>
+    <option>Reference PDF</option>
+  </select>
+
+  <label>Material Title</label>
+  <input type="text" id="title" placeholder="Enter title">
+
+  <label>Select File (PDF / DOC)</label>
+  <input type="file" id="file" accept=".pdf,.doc,.docx">
+
+  <button onclick="upload()">Upload</button>
+
+  <div class="list" id="list"></div>
+</div>
+
+<script>
+
+async function upload() {
+  const select = document.getElementById("classSelect");  
+  const fileInput = document.getElementById("file"); 
+  const class_code = document.getElementById("classSelect").value;
+
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+  formData.append("class_code", class_code);
+  const title = document.getElementById("title").value;
+  formData.append("title", title); 
+  const material_type = document.getElementById("type").value;
+  formData.append("material_type", material_type);
+  const class_name = select.options[select.selectedIndex].text;
+  formData.append("class_name", class_name); 
+  const res = await fetch("http://localhost:8000/documents/upload", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    },
+    body: formData
+  });
+
+  const data = await res.json();
+  alert(data.message);
+}
+
+async function loadClasses() {
+  const res = await fetch("http://127.0.0.1:8000/classroom/my", {
+    headers: {
+      "Authorization": "Bearer " + localStorage.getItem("token")
+    }
+  });
+
+  const data = await res.json();
+
+  const select = document.getElementById("classSelect");
+
+  data.forEach(c => {
+    const option = document.createElement("option");
+    option.value = c.code;
+    option.text = c.name + " (" + c.code + ")";
+    select.appendChild(option);
+  });
+}
+
+loadClasses();
+
+</script>
+
+</body>
+</html>
