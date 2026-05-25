@@ -9,7 +9,7 @@ import re
 from backend.app.database import users_collection
 from backend.app.utils.security import verify_password, hash_password
 from backend.app.utils.jwt import create_access_token
-from abackend.app.utils.email_service import send_otp
+from backend.app.utils.email_service import send_otp
 
 STUDENT_REGEX = r"^btbt[a-z0-9_]*@banasthali\.in$"
 TEACHER_REGEX = r"^(?!btbt)[a-z0-9._]+@banasthali\.in$"
