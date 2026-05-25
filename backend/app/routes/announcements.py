@@ -4,9 +4,9 @@ from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
 import os
 
-from app.database import announcements_collection
-from app.auth_utils import get_current_user
-from app.database import classrooms_collection
+from backend.app.database import announcements_collection
+from backend.app.auth_utils import get_current_user
+from backend.app.database import classrooms_collection
 
 router = APIRouter(prefix="/announcements", tags=["Announcements"])
 

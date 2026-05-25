@@ -1,5 +1,5 @@
 print(" DOCUMENTS FILE RUNNING ")
-from app.utils.ai_engine.ai_engine import agent
+from backend.app.utils.ai_engine.ai_engine import agent
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Form
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
@@ -9,8 +9,8 @@ import os
 from bson import ObjectId
 from fastapi.responses import Response
 
-from app.database import documents_collection, classrooms_collection
-from app.auth_utils import get_current_user
+from backend.app.database import documents_collection, classrooms_collection
+from backend.app.auth_utils import get_current_user
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
@@ -21,7 +21,7 @@ ALGORITHM = os.getenv("ALGORITHM")
 
 
 # ---------------- UPLOAD DOCUMENT ----------------
-from app.store import SESSION_STORE
+from backend.app.store import SESSION_STORE
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),

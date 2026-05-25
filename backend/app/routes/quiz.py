@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime
-from app.database import quizzes_collection, classrooms_collection
-from app.auth_utils import get_current_user
+from backend.app.database import quizzes_collection, classrooms_collection
+from backend.app.auth_utils import get_current_user
 from bson import ObjectId
 from datetime import datetime, timedelta
-from app.database import submissions_collection  
+from backend.app.database import submissions_collection  
 from fastapi.encoders import jsonable_encoder 
 
 router = APIRouter(prefix="/quiz", tags=["Quiz"])

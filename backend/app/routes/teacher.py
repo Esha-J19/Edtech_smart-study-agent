@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime
 
-from app.database import assignments_collection
-from app.auth_utils import get_current_user
-from app.utils.pdf_utils import generate_assignment_pdf
+from backend.app.database import assignments_collection
+from backend.app.auth_utils import get_current_user
+from backend.app.utils.pdf_utils import generate_assignment_pdf
 from fastapi.responses import Response
 from bson import ObjectId
-from app.database import submissions_collection
-from app.database import classrooms_collection
+from backend.app.database import submissions_collection
+from backend.app.database import classrooms_collection
 
 router = APIRouter(prefix="/teacher", tags=["Teacher"])
 

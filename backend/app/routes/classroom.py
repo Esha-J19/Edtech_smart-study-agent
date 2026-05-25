@@ -3,8 +3,8 @@ from datetime import datetime
 import random
 import string
 
-from app.database import db
-from app.auth_utils import get_current_user
+from backend.app.database import db
+from backend.app.auth_utils import get_current_user
 
 router = APIRouter(prefix="/classroom", tags=["Classroom"])
 

@@ -1,6 +1,6 @@
-from app.utils.ai_engine.ai_engine import agent
+from backend.app.utils.ai_engine.ai_engine import agent
 from fastapi import APIRouter, Request
-from app.store import SESSION_STORE
+from backend.app.store import SESSION_STORE
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 

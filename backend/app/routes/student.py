@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends
-from app.database import assignments_collection
-from app.auth_utils import get_current_user
+from backend.app.database import assignments_collection
+from backend.app.auth_utils import get_current_user
 from fastapi.responses import Response
 from bson import ObjectId
-from app.database import classrooms_collection
+from backend.app.database import classrooms_collection
 
 from fastapi import UploadFile, File
 from datetime import datetime
-from app.database import submissions_collection
+from backend.app.database import submissions_collection
 
 
 router = APIRouter(prefix="/student", tags=["Student"])

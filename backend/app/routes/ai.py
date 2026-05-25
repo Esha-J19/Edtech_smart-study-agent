@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.utils.ai_utils import summarize_text, answer_question, generate_quiz, generate_diagram
+from backend.app.utils.ai_utils import summarize_text, answer_question, generate_quiz, generate_diagram
 
 router = APIRouter(prefix="/ai", tags=["AI"])
 
