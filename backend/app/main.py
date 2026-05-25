@@ -6,15 +6,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ---------- ROUTES IMPORT ----------
-from app.routes import auth
-from app.routes import documents
-from app.routes.chat import router as chat_router
-from app.routes import teacher
-from app.routes import student
-from app.routes import classroom
-from app.routes import announcements
-from app.routes import ai  
-from app.routes import quiz 
+from backend.app.routes import auth
+from backend.app.routes import documents
+from backend.app.routes.chat import router as chat_router
+from backend.app.routes import teacher
+from backend.app.routes import student
+from backend.app.routes import classroom
+from backend.app.routes import announcements
+from backend.app.routes import ai  
+from backend.app.routes import quiz 
 
 # ---------- APP ----------
 app = FastAPI()
