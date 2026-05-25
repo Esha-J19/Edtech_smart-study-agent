@@ -6,8 +6,6 @@ passlib[bcrypt]
 python-jose
 email-validator
 openai
-sentence-transformers
-transformers
 torch
 faiss-cpu
 pypdf
